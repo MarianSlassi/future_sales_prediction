@@ -1,0 +1,7 @@
+data/
+
+*.csv
+*.xlsx
+*.json
+.env
+*.log
