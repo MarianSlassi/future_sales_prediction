@@ -1,5 +1,7 @@
 data/
 
+notebooks/test.ipynb
+
 *.csv
 *.xlsx
 *.json
