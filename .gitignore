@@ -3,6 +3,7 @@ data/
 notebooks/test.ipynb
 notebooks/notes.ipynb
 
+*.pyc
 *.csv
 *.xlsx
 *.json
