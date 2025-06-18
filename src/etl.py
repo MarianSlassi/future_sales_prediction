@@ -2,7 +2,12 @@ import pandas as pd
 import numpy as np
 import os
 import logging
-from datetime import datetime
+import datetime
+
+from config import (
+    PATH_SALES, PATH_ITEMS, PATH_ITEM_CATEGORIES,\
+          PATH_SHOPS, PATH_TEST, PATH_OUTPUT_PARQUET, OUTPUT_DIR
+)
 
 # Setup logging
 logging.basicConfig(
@@ -14,106 +19,73 @@ logging.basicConfig(
     ]
 )
 
-def load_data():
-    base_path = '../data'
-    sales = pd.read_csv(os.path.join(base_path, 'sales_train.csv'))
-    items = pd.read_csv(os.path.join(base_path, 'dicts/items.csv'))
-    item_categories = pd.read_csv(os.path.join(base_path, 'dicts/item_categories.csv'))
-    shops = pd.read_csv(os.path.join(base_path, 'dicts/shops.csv'))
-    test = pd.read_csv(os.path.join(base_path, 'submission_data/test.csv'))
+def extract():
+    sales           = pd.read_csv(PATH_SALES)
+    items           = pd.read_csv(PATH_ITEMS)
+    item_categories = pd.read_csv(PATH_ITEM_CATEGORIES)
+    shops           = pd.read_csv(PATH_SHOPS)
+    test            = pd.read_csv(PATH_TEST)
     logging.info('Data loaded successfully')
     return sales, items, item_categories, shops, test
 
-def normalize_shop_ids(df):
-    replacements = {
-        0: 57, 1: 58, 10: 11, 40: 39, 23: 25
-    }
-    df['shop_id'] = df['shop_id'].replace(replacements)
-    return df
-
-def categorize_item_categories(item_categories):
-    item_categories['general_item_category_name'] = item_categories['item_category_name'].apply(lambda x: 'Игровые консоли' if x.split()[0] == 'Игровые' else x.split()[0] )
-    return item_categories
-
-def extract_city_feature(shops):
-    shops['city'] = shops['shop_name'].apply(lambda x: 'Якутск' if x.split()[0] == '!Якутск' else x.split()[0] )
-    return shops
-
-def preprocess_sales(sales):
-
-    # Basic preprocessing
-    logging.info(f'Initial sales shape: {sales.shape}')
-
+def date_convertation(sales):
     sales['date'] = pd.to_datetime(sales['date'], format='%d.%m.%Y')
     logging.info("Converted 'date' to datetime")
-
-    dup_count = sales.duplicated().sum()
-    sales = sales.drop_duplicates()
-    logging.info(f"Dropped {dup_count} duplicated rows")
-
-
-
-
-    # item_price feature filtration :
-    price_q99 = sales['item_price'].quantile(0.99)
-    price_q01 = sales['item_price'].quantile(0.01)
-    count_price_above = sales[sales['item_price'] > price_q99].shape[0]
-    count_price_below = sales[sales['item_price'] < price_q01].shape[0]
-    logging.info(f'item_price: 99th percentile = {price_q99:.2f}, outliers above = {count_price_above}')
-    logging.info(f'item_price: 1st percentile = {price_q01:.2f}, outliers below = {count_price_below}')
-
-    ## item_price negatives
-    sales_negative_zero = sales[sales['item_price'] <= 0].shape[0]
-    logging.info(f'Amount of observations with zero price or below:{sales_negative_zero}')
-    sales = sales[sales['item_price'] > 0]
-    logging.info('Observations equal to zero or below have been removed')
-
-    ## item_price hight, clipping and marking
-    sales['was_item_price_outlier'] = (sales['item_price'] > price_q99).astype('int8')
-    sales['item_price'] = sales['item_price'].clip(0, price_q99)
-    logging.info('item_price outliers have been marked as "was_item_price" binary feature')
-    logging.info(f'Observations higher than 99th item_price percentile have been clipped to upper bound: {price_q99}')
-    
-    
-
-
-    # item_cnt_day feature filtration :
-    cnt_q99 = sales['item_cnt_day'].quantile(0.99)
-    cnt_q01 = sales['item_cnt_day'].quantile(0.01)
-    count_cnt_above = sales[sales['item_cnt_day'] > cnt_q99].shape[0]
-    count_cnt_below = sales[sales['item_cnt_day'] < cnt_q01].shape[0]
-    logging.info(f'item_cnt_day: 99th percentile = {cnt_q99:.2f}, outliers above = {count_cnt_above}')
-    logging.info(f'item_cnt_day: 1st percentile = {cnt_q01:.2f}, outliers below = {count_cnt_below}')
-
-    # item_cnt_day negatives
-    sales = sales[sales['item_cnt_day'] >= 0]
-    logging.info('Observations with item_cnt_day below zero have been removed')
-
-    # item_cnt_day hight, clipping and marking
-    sales['was_item_cnt_day_outlier'] = (sales['item_cnt_day'] > cnt_q99).astype('int8')
-    sales['item_cnt_day'] = sales['item_cnt_day'].clip(0, cnt_q99)
-    logging.info('item_cnt_day outliers have been marked as "was_item_cnt_day" binary feature')
-    logging.info(f'Observations higher than 99th item_cnt_day percentile have been clipped to upper bound: {cnt_q99}')
-
-
-
-
-    # reseting indexes and evalueate overall preprocessing
-    sales = sales.reset_index(drop=True)
-    logging.info(f'Final sales shape: {sales.shape}')
     return sales
 
-def run_etl():
-    logging.info('=== ETL process started ===')
-    sales, items, item_categories, shops, test = load_data()
+def duplicates_filtration(sales: pd.DataFrame):
+    subset_dup = list(sales.columns)
+    dup_count = sales.duplicated(subset = subset_dup).sum()
+    sales = sales.drop_duplicates(subset = subset_dup).copy()
+    logging.info(f"Dropped {dup_count} duplicated rows, cols are : {subset_dup}")
+    return sales
 
+def outliers_filtration(df, column: str):
+    logging.info(f'\n\n Starting Outliers Filtration for {column} : \n')
+
+    # Column feature filtration :
+    q99 = df[column].quantile(0.99)
+    q01 = df[column].quantile(0.01)
+    count_above = df[df[column] > q99].shape[0]
+    count_below = df[df[column] < q01].shape[0]
+    logging.info(f'{column}: 99th percentile = {q99:.2f}, amount of outliers above = {count_above}')
+    logging.info(f'{column}: 1st percentile = {q01:.2f}, amount of outliers below = {count_below}')
+
+    # Column negatives
+    df_negative_zero = df[df[column] <= 0].shape[0]
+    logging.info(f'Amount of observations with zero value of {column} column or below: {df_negative_zero}')
+    df = df[df[column] > 0].copy()
+    logging.info('Observations equal to zero or below have been removed')
+
+    # Column hight values - clipping and marking
+    was_column_outlier = f'was_{column}_outlier'
+    df[was_column_outlier] = (df[column] > q99).astype('int8')
+    df[column] = df[column].clip(0, q99)
+    logging.info(f"{column} outliers have been marked as '{was_column_outlier}' binary feature")
+    logging.info(f'Observations higher than 99th {column} percentile have been clipped to upper bound: {q99}\n')
+    return df
+
+def normalize_shop_ids(df):
+    logging.info('Starting to check duplicated shops')
+    replacements = {10: 11, 1: 58, 0: 57, 40: 39}
+    df['shop_id'] = df['shop_id'].replace(replacements)
+    logging.info('Duplicated shops have been replaced')
+    logging.info(f'Amount of duplicates after dicts similar shops replacement : {df.duplicated().sum()}')
+    logging.info('Grouping duplicated shops and sum item_cnt_value...')
+    df = df.groupby(['date', 'date_block_num', 'shop_id', 'item_id', 'item_price'], as_index=False).agg({'item_cnt_day': 'sum'})
+    logging.info(f'Amount of duplicates after grouping : {df.duplicated().sum()}')
+    return df
+
+def transform(sales, items, item_categories, shops, test):
+
+    # Basic preprocessing
+    initial_len = sales.shape[0]
+    logging.info(f'Initial sales shape: {sales.shape}')
+    sales = date_convertation(sales)
+    sales = duplicates_filtration(sales)
     sales = normalize_shop_ids(sales)
-    test = normalize_shop_ids(test)
-
-    item_categories = categorize_item_categories(item_categories)
-    shops = extract_city_feature(shops)
-
-    sales = preprocess_sales(sales)
+    sales = outliers_filtration(sales, 'item_price')
+    sales = outliers_filtration(sales, 'item_cnt_day')
 
     # Merge dictionaries
     sales = sales.merge(items, on='item_id', how='left')
@@ -121,11 +93,25 @@ def run_etl():
     sales = sales.merge(shops, on='shop_id', how='left')
     logging.info('Merged sales with items, item_categories and shops')
 
-    output_path = '../data/output'
-    os.makedirs(output_path, exist_ok=True)
-    sales.to_csv(os.path.join(output_path, "sales_cleaned.csv"), index=False)
-    logging.info(f'Saved cleaned sales to output/sales_cleaned.csv')
-    logging.info("=== ETL process finished ===")
+    # Reseting indexes and evalueate overall preprocessing
+    sales = sales.reset_index(drop=True)
+    final_len = sales.shape[0]
+    logging.info(f'Final sales shape: {sales.shape}')
+    logging.info(f'Initial table decreased by {initial_len - final_len} raws')
+    return sales
+
+def load(sales):
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    sales.to_parquet(PATH_OUTPUT_PARQUET, index=False)
+    logging.info(f'Saved cleaned sales to {PATH_OUTPUT_PARQUET}')
+
+
+def run_etl():
+    logging.info('\n\n\n=== ETL process started ===')
+    sales, items, item_categories, shops, test = extract()
+    sales = transform(sales, items, item_categories, shops, test)
+    load(sales)
+    logging.info("\n=== ETL process finished ===\n\n\n\n")
 
 if __name__ == "__main__":
     run_etl()

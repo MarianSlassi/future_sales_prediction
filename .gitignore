@@ -1,6 +1,7 @@
 data/
 
 notebooks/test.ipynb
+notebooks/notes.ipynb
 
 *.csv
 *.xlsx
