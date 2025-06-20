@@ -1,13 +1,8 @@
 import pandas as pd
 import numpy as np
-import os
 import logging
-import datetime
-
-from config import (
-    PATH_SALES, PATH_ITEMS, PATH_ITEM_CATEGORIES,\
-          PATH_SHOPS, PATH_TEST, PATH_OUTPUT_PARQUET, OUTPUT_DIR
-)
+from pathlib import Path
+from config import Config
 
 # Setup logging
 logging.basicConfig(
@@ -19,14 +14,6 @@ logging.basicConfig(
     ]
 )
 
-def extract():
-    sales           = pd.read_csv(PATH_SALES)
-    items           = pd.read_csv(PATH_ITEMS)
-    item_categories = pd.read_csv(PATH_ITEM_CATEGORIES)
-    shops           = pd.read_csv(PATH_SHOPS)
-    test            = pd.read_csv(PATH_TEST)
-    logging.info('Data loaded successfully')
-    return sales, items, item_categories, shops, test
 
 def date_convertation(sales):
     sales['date'] = pd.to_datetime(sales['date'], format='%d.%m.%Y')
@@ -76,42 +63,54 @@ def normalize_shop_ids(df):
     logging.info(f'Amount of duplicates after grouping : {df.duplicated().sum()}')
     return df
 
-def transform(sales, items, item_categories, shops, test):
+class ETL_pipeline():
+    def __init__(self, config):
+        self.config = config
 
-    # Basic preprocessing
-    initial_len = sales.shape[0]
-    logging.info(f'Initial sales shape: {sales.shape}')
-    sales = date_convertation(sales)
-    sales = duplicates_filtration(sales)
-    sales = normalize_shop_ids(sales)
-    sales = outliers_filtration(sales, 'item_price')
-    sales = outliers_filtration(sales, 'item_cnt_day')
+    def transform(self, sales):
 
-    # Merge dictionaries
-    sales = sales.merge(items, on='item_id', how='left')
-    sales = sales.merge(item_categories, on='item_category_id', how='left')
-    sales = sales.merge(shops, on='shop_id', how='left')
-    logging.info('Merged sales with items, item_categories and shops')
+        # Basic preprocessing
+        initial_len = sales.shape[0]
+        logging.info(f'Initial sales shape: {sales.shape}')
+        sales = date_convertation(sales)
+        sales = duplicates_filtration(sales)
+        sales = normalize_shop_ids(sales)
+        sales = outliers_filtration(sales, 'item_price')
+        sales = outliers_filtration(sales, 'item_cnt_day')
 
-    # Reseting indexes and evalueate overall preprocessing
-    sales = sales.reset_index(drop=True)
-    final_len = sales.shape[0]
-    logging.info(f'Final sales shape: {sales.shape}')
-    logging.info(f'Initial table decreased by {initial_len - final_len} raws')
-    return sales
+        # Reseting indexes and evalueate overall preprocessing
+        sales = sales.reset_index(drop=True)
+        final_len = sales.shape[0]
+        logging.info(f'Final sales shape: {sales.shape}')
+        logging.info(f'Initial table decreased by {initial_len - final_len} raws')
+        return sales
 
-def load(sales):
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    sales.to_parquet(PATH_OUTPUT_PARQUET, index=False)
-    logging.info(f'Saved cleaned sales to {PATH_OUTPUT_PARQUET}')
+    def load(self, sales):
+        output_dir = Path(self.config.get('output_dir'))
+        output_dir.mkdir(parents=True, exist_ok=True)
+        sales.to_parquet(self.config.get('output_parquet'), index=False)
+        logging.info(f"Saved cleaned sales to {self.config.get('output_parquet')}")
 
 
-def run_etl():
-    logging.info('\n\n\n=== ETL process started ===')
-    sales, items, item_categories, shops, test = extract()
-    sales = transform(sales, items, item_categories, shops, test)
-    load(sales)
-    logging.info("\n=== ETL process finished ===\n\n\n\n")
+    def extract(self):
+        sales           = pd.read_csv(self.config.get('sales'))
+        items           = pd.read_csv(self.config.get('items'))
+        item_categories = pd.read_csv(self.config.get('item_categories'))
+        shops           = pd.read_csv(self.config.get('shops'))
+        test            = pd.read_csv(self.config.get('test'))
+        logging.info('Data loaded successfully')
+        return sales, items, item_categories, shops, test
+
+    def run_etl(self):
+        logging.info('\n\n\n=== ETL process started ===')
+        sales, items, item_categories, shops, test = self.extract()
+        sales = self.transform(sales)
+        self.load(sales)
+        logging.info("\n=== ETL process finished ===\n\n\n\n")
 
 if __name__ == "__main__":
-    run_etl()
+    config = Config()
+    etl = ETL_pipeline(config)
+    etl.run_etl()
+
+
