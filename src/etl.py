@@ -15,17 +15,6 @@ logging.basicConfig(
 )
 
 
-def date_convertation(sales):
-    sales['date'] = pd.to_datetime(sales['date'], format='%d.%m.%Y')
-    logging.info("Converted 'date' to datetime")
-    return sales
-
-def duplicates_filtration(sales: pd.DataFrame):
-    subset_dup = list(sales.columns)
-    dup_count = sales.duplicated(subset = subset_dup).sum()
-    sales = sales.drop_duplicates(subset = subset_dup).copy()
-    logging.info(f"Dropped {dup_count} duplicated rows, cols are : {subset_dup}")
-    return sales
 
 def outliers_filtration(df, column: str):
     logging.info(f'\n\n Starting Outliers Filtration for {column} : \n')
@@ -66,14 +55,26 @@ def normalize_shop_ids(df):
 class ETL_pipeline():
     def __init__(self, config):
         self.config = config
+    
+    def date_convertation(self, sales):
+        sales['date'] = pd.to_datetime(sales['date'], format='%d.%m.%Y')
+        logging.info("Converted 'date' to datetime")
+        return sales
+
+    def duplicates_filtration(self, sales: pd.DataFrame):
+        subset_dup = list(sales.columns)
+        dup_count = sales.duplicated(subset = subset_dup).sum()
+        sales = sales.drop_duplicates(subset = subset_dup).copy()
+        logging.info(f"Dropped {dup_count} duplicated rows, cols are : {subset_dup}")
+        return sales
 
     def transform(self, sales):
 
         # Basic preprocessing
         initial_len = sales.shape[0]
         logging.info(f'Initial sales shape: {sales.shape}')
-        sales = date_convertation(sales)
-        sales = duplicates_filtration(sales)
+        sales = self.date_convertation(sales)
+        sales = self.duplicates_filtration(sales)
         sales = normalize_shop_ids(sales)
         sales = outliers_filtration(sales, 'item_price')
         sales = outliers_filtration(sales, 'item_cnt_day')
@@ -110,6 +111,7 @@ class ETL_pipeline():
 
 if __name__ == "__main__":
     config = Config()
+    # logging.info(f"Loaded config:\n{config}") # uncomment for debugging
     etl = ETL_pipeline(config)
     etl.run_etl()
 
