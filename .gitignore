@@ -10,4 +10,4 @@ notebooks/notes.ipynb
 *.json
 .env
 *.log
-*.paquet
+*.parquet
