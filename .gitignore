@@ -1,4 +1,5 @@
 data/
+logging/
 
 notebooks/test.ipynb
 notebooks/notes.ipynb
@@ -9,3 +10,4 @@ notebooks/notes.ipynb
 *.json
 .env
 *.log
+*.paquet
