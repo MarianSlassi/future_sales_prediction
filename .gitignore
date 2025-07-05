@@ -1,5 +1,6 @@
 data/
-logging/
+!src/data/
+daily_logging/
 
 notebooks/test.ipynb
 notebooks/notes.ipynb
