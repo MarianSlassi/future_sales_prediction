@@ -10,7 +10,7 @@
     │
     ├── data/
     │   ├── raw/            ← dicts + submission_data + sales_train.csv (⚠️check below for expected order)
-    │   ├── interim/        ← techincal folder, probably redundant
+    │   ├── interim/        ← techincal folder, redundant but remained in case of need (⚠️ check below for data explanation)
     │   ├── cleaned/        ← cleaned.parquet
     │   ├── features/       ← final_df
     │   ├── processed/      ← train/val/test
@@ -53,13 +53,13 @@
         └── sales_train.csv
 
 
-⚒️ Base workflow:
-    0. save competition data to project/data/raw
-    1. project/src/data/        clean.py  (schema runs aotumatically)
-    2. project/src/features/    build_features.py (schema runs aotumatically)
-    3. project/src/data/        split.py
-    4. project/src/models/      train_model.py (optionally)
-    5. project/src/models/      predict_model.py
+⚒️ **Base workflow (run files in the following order):**
+1. `project/data/raw`      ⚠️ before starting save competition data in this directory 
+2. `project/src/data/clean.py`          (schema runs automatically)
+3. `project/src/features/build_features.py`     (schema runs automatically)
+4. `project/src/data/split.py`      
+5. `project/src/models/train_model.py`       (optionally)
+6. `project/src/models/predict_model.py`      
 
 
 🏗️ Architecture imporvements:
@@ -78,7 +78,7 @@
     Scripts:
         from pathlib import Path
         import sys
-        ROOT = Path(__file__).resolve().parent[2]
+        ROOT = Path(__file__).resolve().parents[2]
         sys.path.append(str(ROOT))
         from config import Config
         config = Config()
@@ -87,12 +87,27 @@
 
     🖇️Logger: 
     from src.utils.logger import get_logger
-    logger = get_logger("etl")
+    logger = get_logger("etl", config.get('log_file_name')) # You can skip second argument. All log files managed through Config
 
     logger.info("Starting etl Process")
     logger.warning("Something strange happened")
     logger.error("Something went wrong")
 
+### 📁 Data: Interim
+
+🪵 **Interim** — contains data exported to support transformations in notebooks.
+
+- `data_checkpoint_full_df.parquet`  
+  ⤷ At the feature engineering notebook, some transformations are time-consuming. This file stores an intermediate result to speed up debugging — useful when rerunning cells from the beginning.
+
+- `full_df_final.csv`  
+  ⤷ A snapshot of the final observations after transformations in the feature engineering notebooks. Used primarily to develop validation pipelines.
+
+- `sales_for_eda.parquet`  
+  ⤷ Created at the end of the DQC notebook. Unlike the cleaned version, it includes values from dicts for visualization and data consistency checks.  
+  ⤷ Later, the same transformation logic was moved into the EDA notebook, but a commented-out line in DQC remains for reference:
+  `sales.to_parquet(config.get('sales_for_eda'), engine='pyarrow')`</br>
+  ⤷ You can uncomment line above in DQC, as well as import line in EDA `sales = pd.read_parquet(config.get('sales_for_eda'))` and trasform data with notebook. In this case comment out "Merging Dicts" block in EDA.
 
 
 

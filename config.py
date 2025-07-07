@@ -6,33 +6,33 @@ class Config:
 
         self._config = {
             # Logs
-            'logs_dir':                 self.base_dir / 'logs',
-            'log_file_etl':             self.base_dir / 'logs' / 'etl_pipeline.log',
-            'log_file_build_features':  self.base_dir / 'logs' / 'build_features.log',
-            'log_file_split':           self.base_dir / 'logs' / 'split.log',
-            'log_file_train_model':     self.base_dir / 'logs' / 'train_model.log',
-            'log_file_predict_model':   self.base_dir / 'logs' / 'predict_model.log',
+            'logs_dir':                 self.base_dir / '07_logs',
+            'log_file_etl':             self.base_dir / '07_logs' / 'etl_pipeline.log',
+            'log_file_build_features':  self.base_dir / '07_logs' / 'build_features.log',
+            'log_file_split':           self.base_dir / '07_logs' / 'split.log',
+            'log_file_train_model':     self.base_dir / '07_logs' / 'train_model.log',
+            'log_file_predict_model':   self.base_dir / '07_logs' / 'predict_model.log',
 
             # Raw
-            'sales':                    self.base_dir / 'raw' / 'sales_train.csv',
-            'items':                    self.base_dir / 'raw' / 'dicts/items.csv',
-            'item_categories':          self.base_dir / 'raw' / 'dicts/item_categories.csv',
-            'shops':                    self.base_dir / 'raw' / 'dicts/shops.csv',
-            'test':                     self.base_dir / 'raw' / 'submission_data/test.csv',
-            'submission':               self.base_dir / 'raw' / 'submission_data/sample_submission.csv',
+            'sales':                    self.base_dir / '01_raw' / 'sales_train.csv',
+            'items':                    self.base_dir / '01_raw' / 'dicts/items.csv',
+            'item_categories':          self.base_dir / '01_raw' / 'dicts/item_categories.csv',
+            'shops':                    self.base_dir / '01_raw' / 'dicts/shops.csv',
+            'test':                     self.base_dir / '01_raw' / 'submission_data/test.csv',
+            'submission':               self.base_dir / '01_raw' / 'submission_data/sample_submission.csv',
 
             # Interim
-            'sales_for_eda':            self.base_dir / 'interim' / 'sales_for_eda.parquet',
-            'interim_parquet':          self.base_dir / 'interim' / 'data_checkpoint_full_df.parquet',
+            'sales_for_eda':            self.base_dir / '03_interim' / 'sales_for_eda.parquet',
+            'interim_parquet':          self.base_dir / '03_interim' / 'data_checkpoint_full_df.parquet',
 
             # Further Data flow
-            'cleaned_dir':              self.base_dir / 'cleaned',
-            'cleaned_parquet':          self.base_dir / 'cleaned'     / 'sales_cleaned.parquet',
-            'features':                 self.base_dir / 'features'    / 'full_features.parquet',
-            'train_x':                  self.base_dir / 'processed'   / 'train_x.parquet',
-            'train_y':                  self.base_dir / 'processed'   / 'train_y.parquet',
-            'inference':                self.base_dir / 'processed'   / 'inference.parquet',
-            'predict':                  self.base_dir / 'predictions' / 'predicted.csv'
+            'cleaned_dir':              self.base_dir / '02_cleaned',
+            'cleaned_parquet':          self.base_dir / '02_cleaned'     / 'sales_cleaned.parquet',
+            'features':                 self.base_dir / '04_features'    / 'full_features.parquet',
+            'train_x':                  self.base_dir / '05_processed'   / 'train_x.parquet',
+            'train_y':                  self.base_dir / '05_processed'   / 'train_y.parquet',
+            'inference':                self.base_dir / '05_processed'   / 'inference.parquet',
+            'predict':                  self.base_dir / '06_predictions' / 'predicted.csv'
 
         }
 
