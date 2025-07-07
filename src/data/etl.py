@@ -96,6 +96,7 @@ class ETL_pipeline():
         output_dir = Path(self.config.get('cleaned_dir'))
         output_dir.mkdir(parents=True, exist_ok=True)
         sales.to_parquet(self.config.get('cleaned_parquet'), index=False)
+        #sales.to_csv(self.config.get('cleaned_test_schema_csv'), index = False)
         logger.info(f"Saved cleaned sales to {self.config.get('cleaned_parquet')}")
 
 

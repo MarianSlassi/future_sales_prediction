@@ -1,7 +1,8 @@
 data/
 !src/data/
-daily_logging/
 
+temp.py
+daily_logging/
 notebooks/test.ipynb
 notebooks/notes.ipynb
 
