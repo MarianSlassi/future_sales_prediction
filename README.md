@@ -61,8 +61,18 @@
 5. `project/src/models/train_model.py`       (optionally)
 6. `project/src/models/predict_model.py`      
 
+### How everything works?
+The architecture of the project is built on Dependency Injection (DI). Whenever you initiate any script—for example, to clean raw data—you should pass both the config object and the logger object into the constructor of the pipeline class.
 
-🏗️ Architecture imporvements:
+When running any script using the `.run()` method, you must also pass a validation schema object as an argument. And last but not least, when defining a validation schema instance, the logger must also be passed in as an argument. You can check how this is done in `project/src/utils/run_all.py`.
+
+If any transformation step fails schema validation, the entire script execution will be halted. To avoid this, you can set the strict=False parameter in the schema. Additionally, all schemas support input DataFrame modification, since every call to `.validate()` returns a new DataFrame. The logic for assigning these modified DataFrames is implemented in the `.output()` methods of transformation scripts such as `etl.py` and `build_features.py`.
+
+Our system also supports running `build_features.py` and `etl.py` scripts without producing any output DataFrame — this can be done using the `dry_run=False` flag.
+Example: you can call the BuildFeatures object like this:
+`BuildFeatures.run(fe_validator, dry_run=False)`.
+
+🏗️ Panned architecture imporvements:
     -add local interpretator - uv, poetry
 
 📂 Directories/paths managment by config in root:
@@ -87,11 +97,19 @@
 
     🖇️Logger: 
     from src.utils.logger import get_logger
-    logger = get_logger("etl", config.get('log_file_name')) # You can skip second argument. All log files managed through Config
+    logger = get_logger("etl", config.get('log_file_name')) # Technically you can skip second argument, then it will be writen in file with current date. All log files managed through Config
 
     logger.info("Starting etl Process")
     logger.warning("Something strange happened")
     logger.error("Something went wrong")
+
+
+
+
+
+
+
+
 
 ### 📁 Data: Interim
 

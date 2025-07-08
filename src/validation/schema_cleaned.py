@@ -27,13 +27,13 @@ class SchemaSales:
             strict=True
         )
     def validate(self, df: pd.DataFrame) -> pd.DataFrame:
-        logger.info('Initializing SchemaSales validation...')
-        logger.info(f'Starting validation for sales data with {len(df)} records.')
+        self.logger.info('Initializing SchemaSales validation...')
+        self.logger.info(f'Starting validation for sales data with {len(df)} records...')
         try:
             validated_df = self.schema.validate(df)
-            logger.info('Data frame has passed validation!')
+            self.logger.info('Data frame has passed validation!')
         except pa.errors.SchemaErrors as e:
-            logger.error("DataFrame validation failed.")
+            self.logger.error("DataFrame validation failed.")
             self.logger.error(f"\n{e.failure_cases}")  # log specific failure details
             raise
         return validated_df
@@ -41,7 +41,7 @@ class SchemaSales:
 if __name__ == '__main__':
     config = Config()
     logger = get_logger(name="validation_schema_cleaned", log_file=config.get('validation_schema_cleaned'))
-    # Read the dataset (assuming CSV format for this example)
+
     sales_df = pd.read_parquet(config.get('cleaned_parquet'))
     schema_validator = SchemaSales(logger)
     validated_df = schema_validator.validate(sales_df)

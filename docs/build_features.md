@@ -1,245 +1,296 @@
+## 📁 `build_features.py` — Feature Engineering Pipeline
 
+### 📌 Purpose
 
----
-
-
-# 🧠 Feature Engineering Pipeline: Retail Sales Forecasting
-
-## 📜 Overview
-
-This script builds an advanced, memory-efficient, and leakege-free feature engineering pipeline for the [Russian Retail Sales dataset](https://www.kaggle.com/competitions/competitive-data-science-predict-future-sales/). It extracts raw data, performs multiple transformations, handles outliers, builds useful statistical aggregations, encodes categorical features, and finally outputs a `full_df.parquet` file ready for ML models.
-
-All logging is handled with a custom logger. The pipeline is modular, object-oriented, and reproducible.
+This script builds the final feature set `full_df` using cleaned sales data and associated lookup tables (`items`, `shops`, `item_categories`, and the `test` set). It constructs a machine learning-ready dataset with aggregations, lags, binary flags, delta features, and leakage handling. The final output is saved as a `.parquet` file.
 
 ---
 
-## 📦 Dependencies
+### 🧩 Main Class: `BuildFeatures`
 
-Make sure these libraries are installed:
+#### `__init__(config, logger)`
 
-```bash
-pip install pandas numpy pyarrow tqdm
-````
-
-For visualizations and extended analysis, these might be useful but **not required here**:
-
-```bash
-pip install matplotlib seaborn plotly
-```
-
-If you're running from a structured project, you’ll also need your `config.py` and `src/utils/logger.py` available and importable. Adjust your `PYTHONPATH` accordingly (done automatically in script with `sys.path.append(...)`).
+Initializes the pipeline with the configuration object and logger instance.
 
 ---
 
-## 🗂️ Project Structure Assumption
+### 🔍 Step 1: Data Extraction
 
-```
-project/
-│
-├── data/
-│   ├── raw/                  <- raw CSV/Parquet files
-│   └── interim/              <- outputs like full_df.parquet
-│
-├── src/
-│   └── utils/
-│       └── logger.py         <- provides get_logger()
-│
-├── config.py                 <- provides Config class to fetch paths
-├── scripts/
-│   └── build_features.py     <- you are here
-```
+#### `extract()`
+
+Loads raw datasets:
+
+* `sales`: cleaned transactional data
+* `items`, `shops`, `item_categories`: reference dictionaries
+* `test`: the test dataset for November 2015 (missing target)
 
 ---
 
-## 🧩 Class Structure
+### 🏗 Step 2: Schema Construction
 
-### `BuildFeatures`
+#### `blank_schema(sales)`
 
-Main feature engineering class.
+Generates a complete monthly item/shop/item\_id grid (`full_df`) for all observed combinations in `sales`.
 
-#### Constructor
+#### `sales_aggregation(sales)`
 
-```python
-BuildFeatures(config: Config)
-```
+Aggregates sales per month: average `item_price`, total `item_cnt_day`, and flags for price/count outliers.
 
-Initializes config.
+#### `merge_df_aggregated(df, aggregated)`
 
----
+Merges the blank schema with the aggregated monthly sales.
 
-### 📥 Data Extraction
+#### `concat_test(full_df, test)`
 
-```python
-extract()
-```
-
-Loads cleaned sales data, item dicts, shop dicts, item categories, and test set.
+Appends the test set to `full_df` by assigning it `date_block_num = 34`.
 
 ---
 
-### 🧱 Feature Engineering Pipeline
+### 🧠 Step 3: Feature Enrichment
 
-#### Schema Generation
+#### `encode_dicts(...)`
 
-```python
-blank_schema(sales)
-```
+Encodes categorical fields into numerical codes:
 
-Creates a full schema of (month, shop\_id, item\_id) combinations.
+* `item_category_name` → `general_item_category_name`
+* `shop_name` → `city`
 
-#### Aggregation
+Text columns are dropped.
 
-```python
-sales_aggregation(sales)
-```
+#### `merge_full_df_dicts(...)`
 
-Aggregates sales to monthly target level, flags outliers.
+Joins `items`, `shops`, and `item_categories` to `full_df`.
 
-#### Merging
+#### `merge_sales_dicts(...)`
 
-```python
-merge_df_aggregated(df, aggregated)
-concat_test(full_df, test)
-merge_full_df_dicts(full_df, items, items_categories, shops)
-merge_sales_dicts(sales, items, items_categories, shops)
-```
+Adds encoded reference data to `sales`, for use in groupby aggregations.
 
-Combines all information into a single DataFrame for training.
+#### `month_aggregations(...)`
 
----
+Computes aggregations (`sum`, `mean`) of the target across groups like:
 
-### 📊 Feature Creation
+* `item_id`, `shop_id`, `item_category_id`, `general_item_category_name`, `city`.
 
-```python
-month_aggregations(full_df, sales)
-```
+#### `was_in_test(...)`
 
-Adds aggregated target statistics grouped by various entities.
+Adds binary flags indicating whether each `shop_id` and `item_id` is present in the `test` set.
 
-```python
-first_month(full_df)
-```
+#### `first_month(...)`
 
-Flags items appearing for the first time.
+Adds flags marking the first appearance of each item in the timeline.
 
-```python
-expanding_window(full_df)
-```
+#### `expanding_window(...)`
 
-Creates leakege-free expanding window features.
+Creates leak-free expanding window features (mean and max of target) for:
 
-```python
-year_month(full_df)
-```
+* `item_id`, `shop_id`, `item_id + shop_id`
 
-Adds month and year features.
+#### `year_month(...)`
 
-```python
-was_in_test(full_df, test)
-```
-
-Flags test items and shops.
-
-```python
-lags(full_df)
-```
-
-Creates lagged features with configurable shift range.
-
-```python
-deltas(full_df)
-```
-
-Computes deltas and linear extrapolations from lagged features.
-
-```python
-downcast_dtypes(full_df)
-```
-
-Reduces memory usage by downcasting datatypes.
+Adds `year` and `month` as separate features from `date_block_num`.
 
 ---
 
-### 🔍 Leakege Control
+### 📉 Step 4: Lags, Deltas & Cleanup
 
-```python
-check_leakege(full_df)
-```
+#### `lags(full_df, additional)`
 
-Drops features that leak test set information or are constant in the test month (month 34).
+Generates lag features for `target` and optional fields over 1, 2, 3, and 12 months.
 
----
+#### `deltas(full_df, columns_to_delta)`
 
-### 💾 Output
+Computes simple deltas between lag features and naive forecasts based on them.
 
-```python
-output(full_df)
-```
+#### `check_leakege(full_df)`
 
-Saves final `full_df` to Parquet with path from config.
+Removes columns that are always zero in the final test month (`date_block_num == 34`).
+This ensures no accidental leakage from training into test.
 
----
+#### `downcast_dtypes(...)`
 
-### 🧵 Main Pipeline
-
-```python
-run()
-```
-
-Full pipeline: extraction → schema → feature engineering → leakege check → export.
+Downcasts `float64` to `float32` and `int64` to `int32` to reduce memory footprint.
 
 ---
 
-## 🚀 Run Script
+### 💾 Step 5: Output
 
-To execute:
+#### `output(full_df)`
 
-```bash
-python build_features.py
+Applies downcasting and saves `full_df` to a `.parquet` file. Logs memory usage and path.
+
+---
+
+### ▶ Main Pipeline Execution
+
+#### `run(validator_object=None, dry_run=True)`
+
+Runs the full pipeline:
+
+* Builds the schema
+* Applies transformations and enrichment
+* Optionally validates with a `Pandera` schema
+* Saves output if `dry_run=False`
+
+---
+
+### 🧪 Manual CLI Debug (Entry Point)
+
+```python
+if __name__ == '__main__':
+    config = Config()
+    logger = get_logger(...)
+    build_features = BuildFeatures(config, logger)
+    validator = SchemaFeatures(logger)
+    build_features.run(validator_object=validator, dry_run=False)
 ```
 
 ---
 
-## 📘 Logging
+### 🧼 Design Notes & Best Practices
 
-All actions are logged to the file defined in:
+* Every method includes detailed memory and shape logging.
+* Leakage-aware design prevents contamination of test month.
+* Feature validation is handled via Pandera — strict schemas catch unexpected changes.
+* `tqdm` is used for visible tracking of slow processes like expanding windows.
 
-```python
-config.get('log_file_build_features')
+---
+### Pipeline dataflow visualisation:
+```text
+                        ┌────────────────────┐
+                        │ Cleaned Sales CSV  │
+                        └────────┬───────────┘
+                                 ▼
+                       ┌──────────────────────┐
+                       │      sales (df)      │
+                       └────────┬─────────────┘
+                                │
+        ┌───────────────────────┴───────────────────────┐
+        │                                               │
+        ▼                                               ▼
+┌────────────────────┐                         ┌────────────────────┐
+│   blank_schema()    │                         │ sales_aggregation()│
+│ → df (all dates,    │                         │ → aggregated (sum  │
+│ shop_id, item_id)   │                         │   + mean per group)│
+└────────┬────────────┘                         └────────┬───────────┘
+         │                                               │
+         └───────────────────────────────────────────────┘
+                         ▼
+        ┌────────────────────────────────────────┐
+        │ merge_df_aggregated(df, aggregated)    │
+        │ → full_df (joined schema + sales info) │
+        └────────────────────────┬───────────────┘
+                                 ▼
+                     ┌────────────────────────┐
+                     │ concat_test()          │
+                     │ (+ assigns block 34)   │
+                     └─────────┬──────────────┘
+                               ▼
+                    ┌────────────────────────────┐
+                    │ full_df (now includes test)│
+                    └─────────┬──────────────────┘
+                              │
+                              ▼
+                    ┌────────────────────────────┐
+                    │ Items CSV                  │
+                    │ Shops CSV                  │
+                    │ Item Categories CSV        │
+                    └─────────┬────────────┬─────┘
+                              ▼            ▼
+                   ┌─────────────────────────────┐
+                   │ encode_dicts()              │
+                   │ → encoded items, shops, cats│
+                   └───────┬──────────────┬──────┘
+                           ▼              ▼
+            ┌────────────────────┐  ┌───────────────────────┐
+            │ merge_full_df_dicts│  │ merge_sales_dicts     │
+            │ → full_df enriched │  │ → sales enriched       │
+            └──────────┬─────────┘  └─────────┬──────────────┘
+                       ▼                      ▼
+           ┌───────────────────────┐ ┌────────────────────────────┐
+           │ month_aggregations()  │ │ sales used as group source │
+           │ → stats added to      │ └────────────────────────────┘
+           │   full_df             │
+           └──────────┬────────────┘
+                      ▼
+          ┌───────────────────────────────┐
+          │ was_in_test(full_df, test)    │
+          │ → flags item/shop presence    │
+          └──────────┬────────────────────┘
+                     ▼
+          ┌───────────────────────────────┐
+          │ first_month(full_df)          │
+          │ → marks item's first sale     │
+          └──────────┬────────────────────┘
+                     ▼
+          ┌───────────────────────────────┐
+          │ expanding_window(full_df)     │
+          │ → mean/max per previous month │
+          └──────────┬────────────────────┘
+                     ▼
+          ┌───────────────────────────────┐
+          │ year_month(full_df)           │
+          │ → adds 'year' and 'month'     │
+          └──────────┬────────────────────┘
+                     ▼
+          ┌───────────────────────────────┐
+          │ lags(full_df)                 │
+          │ → shifted features t-1, t-2.. │
+          └──────────┬────────────────────┘
+                     ▼
+          ┌───────────────────────────────┐
+          │ deltas(full_df)               │
+          │ → diffs & naive predictions   │
+          └──────────┬────────────────────┘
+                     ▼
+          ┌───────────────────────────────┐
+          │ check_leakege(full_df)        │
+          │ → removes invalid features    │
+          └──────────┬────────────────────┘
+                     ▼
+         ┌────────────────────────────────┐
+         │ Pandera Validation (optional)  │
+         └──────────┬─────────────────────┘
+                    ▼
+         ┌────────────────────────────────┐
+         │ downcast_dtypes(full_df)       │
+         └──────────┬─────────────────────┘
+                    ▼
+         ┌────────────────────────────────┐
+         │ output(full_df)                │
+         │ → saves as full_df.parquet     │
+         └────────────────────────────────┘
+
 ```
 
-You can customize the logger using `get_logger(name, log_file)` in `src/utils/logger.py`.
 
----
+Possibilities:
+1. Changing any of those parametrs inside of a script will cause a schemma error. Yet features schema rebuild script isn't included in the project. 
+2. For downcast dtypes when it used inside of tqdm loop, we avoid interrupting console output and might like to stop logging inside of tqdm, that's why for `.downcast_dtypes()` method we have argument as `logs: bool = False` by default it doesn't show in logs how much script decreased a memory of a given DataFrame. We also have `only_to_show_loses: bool = False` parametr in case if we want to see ONLY how much memory will be reduced but not reducing this, pay attention when enabling this flag, because downcasting itslelf won't work. 
+3. For `.check_leakege()`  you can send as argument `constant_features` for those features checking for all Nans in test set inside of full_df will be skipped. By default it includes features as `{'target','item_id_was_in_test', 'shop_id_was_in_test','not_full_historical_data'}`
+4. For `.deltas()` you also can choose from which feature you want to create deltas for the last two monthes, and "predictions" for the next two. By default it includes following features: `['target', 'target_item_id_total', 'target_shop_id_total','target_item_category_id_total',\
+                            'target_general_item_category_name_total', 'target_city_total']`
+5. For `.lags()` you can also pass features names for which to create lags, by default script creates lags which has 'target' string inside of columns names. And you can add some, by default following are added: `['was_item_price_outlier', 'was_item_cnt_day_outlier', 'item_price']`
+    
+Syntax of script:
+Every method represents a heading from notebook. Every sub heading devvided by two \n. Every cell devided by one \n
 
-## 🧠 Notes
-
-* Lags and deltas are added for both targets and outlier flags.
-* Memory usage is monitored throughout with `size_memory_info`.
-* Modularized into reusable functions and full pipeline methods (`full_schema`, `transform`, etc.)
-* `test` month is hardcoded as `34` based on Kaggle challenge structure.
-
----
-
-## ✨ Tip for Users
-
-If you're iterating/debugging inside a notebook, extract methods like `.extract()`, `.full_schema()` and `.transform()` to run them independently, step-by-step.
-
----
-
-## 🧼 TODO
-
-* Integrate DVC for reproducible pipeline steps
-* Optional: Replace raw loops with vectorized pandas (where feasible)
-
-
-
-```
+Architecture:
+Better to store variables locally across methods and keep instance variables of object as much clean as possible, since we have big enough dataframe for memmory malloc or overflow. 
 
 RAW:
-Methods:
+</br>Methods:
 - extract()
-- full_schema()
+
+- blank_schema()
+- sales_aggregation()
+- merge_df_aggregated()
+- concat_test()
+- encode_dicts()
+- merge_full_df_dicts()
+- merge_sales_dicts()
+- month_aggregations()
+- was_in_test()
+
 - month_aggregations()
 - first_month()
 - expanding_window()
@@ -249,23 +300,4 @@ Methods:
 - lags()
 - deltas()
 - output()
-
-
-
-
-Functions: 
 - size_memmory_info()
-
-
-Syntax:
-Every method represents a heading from notebook. Every sub heading devvided by two \n. Every cell devided by one \n
-
-Architecture:
-Better to store variables locally across methods and keep instnce variables of object as much clean as possible, since we have big enough dataframe for memmory malloc or overflow. Some operations provided with function syntax of the file to import in case of need (probable will remove them to helper.py)
-
-
-
-
-
-----------
-Here's a full documentation for your script in `.md` format — suitable for your repo, cleanly structured and markdown-beautiful.

@@ -11,25 +11,12 @@ from utils.logger import get_logger
 
 logger = get_logger("train_pipeline")
 logger.info("Training started")
-````
-
-Console output:
-
 ```
-2025-07-05 14:03:11 | INFO | train_pipeline | Training started
-```
-
-A log file will also be created at:
-
-```
-logs/train_pipeline_20250705_140311.log
-```
-
 ## ⚙️ Parameters
 
 * `name (str)`: Name of the logger. Appears in the log output.
 * `log_file (str, optional)`: Custom log file name (no path). If not provided, a file is created with a timestamp in the logs directory.
-
+  
 ## 📁 Log Directory
 
 The log file is saved in the directory defined in your config:
@@ -39,6 +26,22 @@ LOG_DIR = config.get('logs_dir')
 ```
 
 If the folder doesn’t exist, it is created automatically with all necessary parent folders.
+
+If no log_file Path added, file will be created with logger name:
+
+```
+logs/train_pipeline_20250705_140311.log
+```
+
+## ✅ Output Sample
+
+```
+2025-07-05 14:06:12 | INFO | data_cleaning | Dropped 104 rows with missing prices
+2025-07-05 14:06:14 | INFO | train_model | XGBoost training finished. RMSE: 1.084
+```
+Console output has the same structure as in logs files
+
+
 
 ## 🧠 Features
 
@@ -59,11 +62,5 @@ Used for logging:
 * Evaluation metrics
 * Runtime exceptions and debugging
 
-## ✅ Output Sample
-
-```
-2025-07-05 14:06:12 | INFO | data_cleaning | Dropped 104 rows with missing prices
-2025-07-05 14:06:14 | INFO | train_model | XGBoost training finished. RMSE: 1.084
-```
 
 ---

@@ -41,6 +41,7 @@ class Config:
 
             # Predict _06
             'predict_dir':              predict_dir,
+            'predict_base':             predict_dir / 'base_predicted.csv',
             'predict':                  predict_dir / 'predicted.csv',
 
             # Processed _05

@@ -59,14 +59,15 @@ class SchemaFeatures:
             strict=True
         )
     def validate(self, df: pd.DataFrame) -> pd.DataFrame:
-        logger.info(f'Initialising scheme_features.py...\n')
-        logger.info(f'Starting feature validation with {config.get('features')} , uploading it in memory...')
+        self.logger.info(f'Initialising scheme_features.py...\n')
+        #self.logger.info(f'Starting feature validation with {self.config.get('features')} , uploading it in memory...') # Nedded to add config for debugging
+        self.logger.info(f'Starting validation for features Dframe with {len(df)} records...')
 
         try:
-            validated_df = self.schema.validate(full_df)
-            logger.info(f'Data frame has passed validation! Located at {config.get('features')} \n')
+            validated_df = self.schema.validate(df)
+            self.logger.info(f'Data frame has passed validation!\n')
         except pa.errors.SchemaErrors as e:
-            logger.error("!!! DataFrame validation failed.")
+            self.logger.error("!!! DataFrame validation failed.")
             self.logger.error(f"\n{e.failure_cases}")  # This logs the specific columns, checks, and offending values
             raise
 
