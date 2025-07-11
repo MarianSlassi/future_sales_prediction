@@ -15,6 +15,7 @@ from src.utils.logger import get_logger
 
 
 class Split():
+    
     def __init__(self, config, logger):
         self.config = config
         self.logger = logger
