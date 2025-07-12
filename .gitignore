@@ -1,11 +1,23 @@
+# Igonre data/ folder but not source/data
 data/
+!src/data/
 
+#Local variables
+.venv/
+.vscode/
+
+#Personal variables
+temp.py
+daily_logging/
 notebooks/test.ipynb
 notebooks/notes.ipynb
 
+# File types
 *.pyc
 *.csv
 *.xlsx
 *.json
 .env
 *.log
+*.parquet
+*.png
