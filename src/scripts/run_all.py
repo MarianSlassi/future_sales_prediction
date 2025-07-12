@@ -1,30 +1,18 @@
 import numpy as np
 import pandas as pd
-import itertools
-import tqdm
-import gc
-import logging
-
 
 from pathlib import Path
-import sys
-ROOT = Path(__file__).resolve().parents[2]
-print(ROOT)
-sys.path.append(str(ROOT))
 
-from config import Config
+from src.config import Config
 from src.utils.logger import get_logger
-
 from src.data.etl import ETL_pipeline
 from src.validation.schema_cleaned import SchemaSales
-
 from src.features.build_features import BuildFeatures
 from src.validation.scheme_features import SchemaFeatures
-
 from src.data.split import Split
 
-
-if __name__ == '__main__'  :
+# To run this file use following command from ROOT in console:  python -m scr.scripts.run_all 
+if __name__ == '__main__':
     config = Config()
 
     # ETL

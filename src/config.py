@@ -5,7 +5,7 @@ class Config:
 
     
     def __init__(self, base_dir: Path = None):
-        self.base_dir = base_dir or Path(__file__).resolve().parent / 'data' # store all data in dedicated folder ⚠️
+        self.base_dir = base_dir or Path(__file__).resolve().parents[1] / 'data' # store all data in dedicated folder ⚠️
 
         '''
         Rules of devine config:

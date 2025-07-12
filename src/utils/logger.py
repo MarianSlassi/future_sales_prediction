@@ -4,9 +4,8 @@ from datetime import datetime
 # Config initialisation
 from pathlib import Path
 import sys
-ROOT = Path(__file__).resolve().parents[2]
-sys.path.append(str(ROOT))
-from config import Config
+
+from src.config import Config
 config = Config()
 
 LOG_DIR = config.get('logs_dir')

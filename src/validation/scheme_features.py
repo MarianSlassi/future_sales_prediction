@@ -7,7 +7,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[2]
 print(ROOT)
 sys.path.append(str(ROOT))
-from config import Config
+from src.config import Config
 from src.utils.logger import get_logger
 
 
@@ -59,7 +59,7 @@ class SchemaFeatures:
             strict=True
         )
     def validate(self, df: pd.DataFrame) -> pd.DataFrame:
-        self.logger.info(f'Initialising scheme_features.py...\n')
+        self.logger.info(f'Initializing scheme_features.py...\n')
         #self.logger.info(f'Starting feature validation with {self.config.get('features')} , uploading it in memory...') # Nedded to add config for debugging
         self.logger.info(f'Starting validation for features Dframe with {len(df)} records...')
 
@@ -73,15 +73,6 @@ class SchemaFeatures:
 
         return validated_df
 
-if __name__ == '__main__'  :
-    config = Config()
-    logger = get_logger(name = "validation_schema_features", \
-                        log_file = config.get('validation_schema_features'))
-    
-    full_df = pd.read_parquet(config.get('features'))
-
-    schema_validator = SchemaFeatures(logger)
-    validated_df = schema_validator.validate(full_df)
     
     
     

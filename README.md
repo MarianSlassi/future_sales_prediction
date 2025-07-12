@@ -2,7 +2,7 @@
 
     project/
     │
-    ├── config.py
+  
     │
     ├── reqirements.txt
     │
@@ -24,6 +24,8 @@
     │   └── all_notebooks.ipynb
     │
     ├── src/
+    |   ├── config.py
+    |   |
     │   ├── data/
     │   │   ├── etl.py
     │   │   └── split.py
@@ -60,7 +62,11 @@
 4. `project/src/data/split.py`      
 5. `project/src/models/train_model.py`       (optionally)
 6. `project/src/models/predict_model.py`      
-
+⚠️With current version we don't support running modules separatelly (as files), all that happens inside of run_all.py.
+You need to run it as module. To do that you need to set for interpretator ROOT of the project as a starting directory. 
+Should be done with:
+1. `cd \project`
+2. `python -m src.scripts.run_all`
 ### How everything works?
 The architecture of the project is built on Dependency Injection (DI). Whenever you initiate any script—for example, to clean raw data—you should pass both the config object and the logger object into the constructor of the pipeline class.
 

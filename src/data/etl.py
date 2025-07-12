@@ -2,27 +2,9 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 
-import sys
-ROOT = Path(__file__).resolve().parents[2]
-sys.path.append(str(ROOT))
-from config import Config
-
+from src.config import Config
 from src.utils.logger import get_logger
 from src.validation.schema_cleaned import SchemaSales
-
-
-# Setup logging
-# logging.basicConfig(
-#     level=logging.INFO,
-#     format='%(asctime)s - %(levelname)s - %(message)s',
-#     handlers=[
-#         logging.FileHandler('src/etl_pipeline.log'),
-#         logging.StreamHandler()
-#     ]
-# )
-
-
-
 
 class ETL_pipeline():
 
@@ -33,7 +15,7 @@ class ETL_pipeline():
     def outliers_filtration(self, df, column: str):
         self.logger.info(f'\n\n Starting Outliers Filtration for {column} : \n')
 
-        # Column feature filtration :
+        # Column feature filtration:
         q99 = df[column].quantile(0.99)
         q01 = df[column].quantile(0.01)
         count_above = df[df[column] > q99].shape[0]
@@ -45,9 +27,9 @@ class ETL_pipeline():
         df_negative_zero = df[df[column] <= 0].shape[0]
         self.logger.info(f'Amount of observations with zero value of {column} column or below: {df_negative_zero}')
         df = df[df[column] > 0].copy()
-        self.logger.info('Observations equal to zero or below have been removed')
+        self.logger.info('Observations with zero or negative values have been removed')
 
-        # Column hight values - clipping and marking
+        # Column high values - clipping and marking
         was_column_outlier = f'was_{column}_outlier'
         df[was_column_outlier] = (df[column] > q99).astype('int8')
         df[column] = df[column].clip(0, q99)
@@ -63,10 +45,10 @@ class ETL_pipeline():
         self.logger.info(f'Amount of duplicates after dicts similar shops replacement : {df.duplicated().sum()}')
         self.logger.info('Grouping duplicated shops and sum item_cnt_value...')
         df = df.groupby(['date', 'date_block_num', 'shop_id', 'item_id', 'item_price'], as_index=False).agg({'item_cnt_day': 'sum'})
-        self.logger.info(f'Amount of duplicates after grouping : {df.duplicated().sum()}')
+        self.logger.info(f'Number of duplicates after grouping : {df.duplicated().sum()}')
         return df
     
-    def date_convertation(self, sales):
+    def date_conversion(self, sales):
         sales['date'] = pd.to_datetime(sales['date'], format='%d.%m.%Y')
         self.logger.info("Converted 'date' to datetime")
         return sales
@@ -83,17 +65,17 @@ class ETL_pipeline():
         # Basic preprocessing
         initial_len = sales.shape[0]
         self.logger.info(f'Initial sales shape: {sales.shape}')
-        sales = self.date_convertation(sales)
+        sales = self.date_conversion(sales)
         sales = self.duplicates_filtration(sales)
         sales = self.normalize_shop_ids(sales)
         sales = self.outliers_filtration(sales, 'item_price')
         sales = self.outliers_filtration(sales, 'item_cnt_day')
 
-        # Reseting indexes and evalueate overall preprocessing
+        # Resetting indexes and evalueate overall preprocessing
         sales = sales.reset_index(drop=True)
         final_len = sales.shape[0]
         self.logger.info(f'Final sales shape: {sales.shape}')
-        self.logger.info(f'Initial table decreased by {initial_len - final_len} raws')
+        self.logger.info(f'Initial table decreased by {initial_len - final_len} rows')
         return sales
 
     def load(self, sales):
@@ -113,7 +95,7 @@ class ETL_pipeline():
         self.logger.info('Data loaded successfully')
         return sales, items, item_categories, shops, test
 
-    def run_etl(self, validator_object = None, dry_run: bool = True):
+    def run_etl(self, validator_object=None, dry_run: bool=True):
         self.logger.info('\n\n\n=== ETL process started ===')
         sales, items, item_categories, shops, test = self.extract()
         sales = self.transform(sales)
@@ -121,20 +103,9 @@ class ETL_pipeline():
         if validator_object is not None:
             sales = validator_object.validate(sales)
         else:
-            self.logger.warning('!!! No validation schema passed to build_features pipeline\
+            self.logger.warning('!!! No validation schema passed to etl pipeline\
                                 Pipeline made transformations without validation.')
         
         if not dry_run:
             self.load(sales)
         self.logger.info("\n=== ETL process finished ===\n\n\n\n")
-
-if __name__ == "__main__":
-    config = Config()
-    logger_etl = get_logger("etl", log_file = config.get('log_file_etl'))
-    # logging.info(f"Loaded config:\n{config}") # uncomment for debugging
-    etl = ETL_pipeline(config, logger_etl)
-
-    logger_etl_schema = get_logger(name="validation_schema_cleaned", log_file=config.get('validation_schema_cleaned'))
-    schema_validator = SchemaSales(logger_etl_schema)
-
-    etl.run_etl(validator_object= schema_validator)
