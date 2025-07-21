@@ -12,7 +12,7 @@ from src.validation.scheme_features import SchemaFeatures
 from src.data.split import Split
 from src.models.XGB_model import XGB_model
 
-# To run this file use following command from ROOT in console:  ``python -m src.scripts.run_all`` 
+# To run this file use following command from ROOT in console:  ``python -m src.scripts.predict`` 
 if __name__ == '__main__':
     config = Config()
 
