@@ -2,10 +2,10 @@ from pathlib import Path
 
 class Config:
 
-
     
-    def __init__(self, base_dir: Path = None):
+    def __init__(self, base_dir: Path = None, **custom_paths):
         self.base_dir = base_dir or Path(__file__).resolve().parents[1] / 'data' # store all data in dedicated folder ⚠️
+        self.models_dir    = Path(__file__).resolve().parents[1] / 'models'
 
         '''
         Rules of devine config:
@@ -14,16 +14,29 @@ class Config:
         3. Configs sorted vice versa on purpose.
         Due to expecation you will like to change them as less 
         as you get closer to raw data. 
+
+        Instance of usage:
+        cfg = Config(
+            base_dir=Path("my_data_folder"),
+            raw_dir=Path("/mnt/drive/datasets/raw"),  
+            logs_dir=Path("/tmp/logs")                
+        )
+
         '''
         
-    
-        logs_dir      = self.base_dir / '07_logs'
-        predict_dir   = self.base_dir / '06_predictions'
-        processed_dir = self.base_dir / '05_processed'
-        features_dir  = self.base_dir / '04_features'
-        interim_dir   = self.base_dir / '03_interim'
-        cleaned_dir   = self.base_dir / '02_cleaned'
-        raw_dir       = self.base_dir / '01_raw'
+        def override_or_default(key: str, default: Path):
+            path =  Path(custom_paths.get(key, default)) # if key exists in custom_path - return it as path, else take 'defatult' var 
+            path.mkdir(parents=True, exist_ok=True)
+            return path 
+
+        logs_dir      = override_or_default('logs_dir', self.base_dir / '07_logs')
+        predict_dir   = override_or_default('predict_dir', self.base_dir / '06_predictions')
+        processed_dir = override_or_default('processed_dir', self.base_dir / '05_processed')
+        features_dir  = override_or_default('features_dir', self.base_dir / '04_features')
+        interim_dir   = override_or_default('interim_dir', self.base_dir / '03_interim')
+        cleaned_dir   = override_or_default('cleaned_dir', self.base_dir / '02_cleaned')
+        raw_dir       = override_or_default('raw_dir', self.base_dir / '01_raw')
+        models_dir    = override_or_default('models_dir', self.models_dir)
 
         
         self._config = {
@@ -32,8 +45,14 @@ class Config:
             'log_file_etl':             logs_dir / 'etl_pipeline.log',
             'log_file_build_features':  logs_dir / 'build_features.log',
             'log_file_split':           logs_dir / 'split.log',
-            'log_file_train_model':     logs_dir / 'train_model.log',
-            'log_file_predict_model':   logs_dir / 'predict_model.log',
+            'log_file_model':           logs_dir / 'model.log',
+
+            # Expirements logging
+            'log_ml_flow':              logs_dir / 'ml_flow.log',
+
+            # Models
+            'models_dir':               models_dir,
+            'xgb_model':                models_dir / 'xgb_model.pkl',
 
             # Validation Schems _07
             'validation_schema_cleaned':   logs_dir / 'validation_schema_cleaned.log',
@@ -41,7 +60,7 @@ class Config:
 
             # Predict _06
             'predict_dir':              predict_dir,
-            'predict_base':             predict_dir / 'base_predicted.csv',
+            'predict_base':             predict_dir / 'base_predicted.csv', # basic predictions
             'predict':                  predict_dir / 'predicted.csv',
 
             # Processed _05
@@ -77,10 +96,12 @@ class Config:
         
     def get(self, key : str) -> Path:
             if key not in self._config:
-                  raise KeyError(f"Config key '{key}' not found.\nPossible keys: {self.keys()}")
+                raise KeyError(f"Config key '{key}' not found.\nPossible keys: {self.keys()}")     
             return self._config[key]
     
     def set(self, key: str, value: Path | str) -> None:
+            if 'dir' in key:
+                raise KeyError(f'You can only set base directories when creating config object')
             self._config[key] = Path(value)
 
     def as_dict(self) -> dict[str, Path]:

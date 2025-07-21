@@ -73,7 +73,8 @@ class BuildFeatures():
                                                             'sum','was_item_price_outlier':'mean', \
                                                                 'was_item_cnt_day_outlier':'mean'})
         aggregated.rename(columns={'item_cnt_day': 'target'}, inplace = True)
-
+        # aggregated['target'] = aggregated['target'].clip(0,20)
+        # self.logger.info('Clipping target⚒️⚠️🫡')
         self.logger.info('Sales successfully aggregated at the monthly level, item_cnt_month columns marked as "target"')
         return aggregated
 

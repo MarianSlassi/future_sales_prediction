@@ -2,7 +2,7 @@
 
     project/
     │
-  
+    ├── img/              ← for images
     │
     ├── reqirements.txt
     │
@@ -70,7 +70,7 @@ Should be done with:
 ### How everything works?
 The architecture of the project is built on Dependency Injection (DI). Whenever you initiate any script—for example, to clean raw data—you should pass both the config object and the logger object into the constructor of the pipeline class.
 
-When running any script using the `.run()` method, you must also pass a validation schema object as an argument. And last but not least, when defining a validation schema instance, the logger must also be passed in as an argument. You can check how this is done in `project/src/utils/run_all.py`.
+When running any transformation script using the `.run()` method, you must also pass a validation schema object as an argument. And last but not least, when defining a validation schema instance, the logger must also be passed in as an argument. You can check how this is done in `project/src/utils/run_all.py`.
 
 If any transformation step fails schema validation, the entire script execution will be halted. To avoid this, you can set the strict=False parameter in the schema. Additionally, all schemas support input DataFrame modification, since every call to `.validate()` returns a new DataFrame. The logic for assigning these modified DataFrames is implemented in the `.output()` methods of transformation scripts such as `etl.py` and `build_features.py`.
 

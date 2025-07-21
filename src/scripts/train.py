@@ -10,8 +10,9 @@ from src.validation.schema_cleaned import SchemaSales
 from src.features.build_features import BuildFeatures
 from src.validation.scheme_features import SchemaFeatures
 from src.data.split import Split
+from src.models.XGB_model import XGB_model
 
-# To run this file use following command from ROOT in console:  python -m scr.scripts.run_all 
+# To run this file use following command from ROOT in console:  ``python -m src.scripts.run_all`` 
 if __name__ == '__main__':
     config = Config()
 
@@ -20,9 +21,9 @@ if __name__ == '__main__':
     etl = ETL_pipeline(config, logger_etl)
     logger_etl_schema = get_logger(name="validation_schema_cleaned"\
                                    , log_file=config.get('validation_schema_cleaned'))
-    schema_validator = SchemaSales(logger_etl_schema)
+    etl_validator = SchemaSales(logger_etl_schema)
 
-    etl.run_etl(validator_object = schema_validator, dry_run= False)
+    etl.run_etl(validator_object = etl_validator, dry_run= False)
 
     # FE
     logger_fe = get_logger(name = "build_features", \
@@ -41,3 +42,13 @@ if __name__ == '__main__':
                             log_file = config.get('log_file_split'))
     split = Split(config, logger_split)
     split.run()
+
+    # Model 
+
+    logger_model = get_logger(name = "model", log_file= config.get('log_file_model'))
+
+    model = XGB_model(config, logger_model)
+    model.train(save = True)
+
+    
+    # Class: model.prediction() / model.inference() / model.train() 

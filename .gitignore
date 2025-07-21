@@ -1,6 +1,9 @@
 # Igonre data/ folder but not source/data
 data/
 !src/data/
+catboost_info/
+models/
+!srct/models/
 
 #Local variables
 .venv/
@@ -11,6 +14,10 @@ temp.py
 daily_logging/
 notebooks/test.ipynb
 notebooks/notes.ipynb
+img/
+
+#Open later:
+mlruns/
 
 # File types
 *.pyc
@@ -20,4 +27,4 @@ notebooks/notes.ipynb
 .env
 *.log
 *.parquet
-*.png
+*.pkl
