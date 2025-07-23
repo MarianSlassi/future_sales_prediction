@@ -3,14 +3,6 @@ import pandas as pd
 import itertools
 import tqdm
 import gc
-import logging
-
-from pathlib import Path
-
-from src.config import Config
-from src.utils.logger import get_logger
-from src.validation.scheme_features import SchemaFeatures
-
 
 class BuildFeatures():
     def __init__(self,config, logger):

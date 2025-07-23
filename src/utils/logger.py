@@ -2,9 +2,6 @@ import logging
 from datetime import datetime
 
 # Config initialisation
-from pathlib import Path
-import sys
-
 from src.config import Config
 config = Config()
 

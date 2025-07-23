@@ -1,10 +1,4 @@
 import pandas as pd
-import numpy as np
-from pathlib import Path
-
-from src.config import Config
-from src.utils.logger import get_logger
-from src.validation.schema_cleaned import SchemaSales
 
 class ETL_pipeline():
 

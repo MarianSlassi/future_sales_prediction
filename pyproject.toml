@@ -1,0 +1,23 @@
+[project]
+name = "fse_rimka_lasso"
+version = "0.1.0"
+description = "Project for future sales prediction, data preprocessing, and model training"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "scikit-learn==1.7.0",
+    "pandas==2.3.1",
+    "numpy==2.2.0",
+    "pandera==0.25.0",
+    "tqdm==4.67.1",
+    "joblib==1.5.1",
+    "xgboost==3.0.2",
+    "pyarrow==20.0.0",
+    "matplotlib==3.10.3",
+    "optuna==4.4.0",
+    "plotly==6.2.0",
+    "scipy==1.16.0",
+    "seaborn==0.13.2",
+    "mlflow==3.1.1",
+    "shap==0.48.0",
+]

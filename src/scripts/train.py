@@ -1,8 +1,3 @@
-import numpy as np
-import pandas as pd
-
-from pathlib import Path
-
 from src.config import Config
 from src.utils.logger import get_logger
 from src.data.etl import ETL_pipeline
@@ -12,7 +7,7 @@ from src.validation.scheme_features import SchemaFeatures
 from src.data.split import Split
 from src.models.XGB_model import XGB_model
 
-# To run this file use following command from ROOT in console:  ``python -m src.scripts.predict`` 
+# To run this file use following command from ROOT in console:  ``python -m src.scripts.train`` 
 if __name__ == '__main__':
     config = Config()
 
@@ -49,6 +44,3 @@ if __name__ == '__main__':
 
     model = XGB_model(config, logger_model)
     model.train(save = True)
-
-    
-    # Class: model.prediction() / model.inference() / model.train() 

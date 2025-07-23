@@ -2,7 +2,6 @@ from pathlib import Path
 
 class Config:
 
-    
     def __init__(self, base_dir: Path = None, **custom_paths):
         self.base_dir = base_dir or Path(__file__).resolve().parents[1] / 'data' # store all data in dedicated folder ⚠️
         self.models_dir    = Path(__file__).resolve().parents[1] / 'models'
@@ -93,6 +92,50 @@ class Config:
             'test':                     raw_dir / 'submission_data/test.csv',
             'submission':               raw_dir / 'submission_data/sample_submission.csv'
         }
+        self._xgb_model={
+            'xgb_params': {'n_estimators': 192, 'max_depth': 9, \
+            'learning_rate': 0.018270981823248666, \
+                'subsample': 0.7539246424525929, 'colsample_bytree': 0.562829755261984,\
+                    'gamma': 0.3153933459249693, 'lambda': 0.1718951364361902, \
+                        'alpha': 0.26986966152618785, 'enable_categorical':True},
+            'important_features': ['target_lag_1',
+            'target_aggregated_max_premonthes_item_id_shop_id_lag_1',
+            'target_aggregated_mean_premonthes_item_id_shop_id',
+            'target_aggregated_max_premonthes_item_id_shop_id',
+            'target_item_category_id_mean_lag_2',
+            'target_aggregated_max_premonthes_item_id_lag_2',
+            'target_predict_2_3',
+            'first_month_item_id',
+            'target_aggregated_max_premonthes_item_id_shop_id_lag_2',
+            'item_category_id',
+            'target_item_id_mean_lag_1',
+            'item_id_was_in_test',
+            'was_item_cnt_day_outlier_lag_1',
+            'target_general_item_category_name_total_predict_1_2',
+            'target_aggregated_max_premonthes_item_id',
+            'target_item_id_total_lag_1',
+            'target_general_item_category_name_total_predict_2_3',
+            'target_lag_2',
+            'month',
+            'target_aggregated_mean_premonthes_shop_id_lag_1',
+            'target_aggregated_mean_premonthes_shop_id',
+            'target_item_category_id_total_delta_1_2',
+            'target_item_id_total_predict_1_2',
+            'target_lag_3',
+            'target_aggregated_mean_premonthes_item_id_lag_3',
+            'target_item_category_id_total_predict_1_2',
+            'target_general_item_category_name_mean_lag_2',
+            'target_shop_id_total_delta_1_2',
+            'target_general_item_category_name_total_lag_1',
+            'target_item_category_id_total_lag_1',
+            'target_general_item_category_name_mean_lag_1',
+            'target_shop_id_total_predict_2_3',
+            'shop_id',
+            'city',
+            'date_block_num', 'item_id']
+        }
+    def get_xgb(self, key: str):
+         return self._xgb_model[key]
         
     def get(self, key : str) -> Path:
             if key not in self._config:

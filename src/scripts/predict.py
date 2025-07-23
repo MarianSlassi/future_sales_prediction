@@ -1,6 +1,3 @@
-import numpy as np
-import pandas as pd
-from pathlib import Path
 from src.models.XGB_model import XGB_model
 from src.config import Config
 from src.utils.logger import get_logger 
