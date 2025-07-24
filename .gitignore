@@ -3,7 +3,7 @@ data/
 !src/data/
 catboost_info/
 models/
-!srct/models/
+!src/models/
 
 
 #Local variables
