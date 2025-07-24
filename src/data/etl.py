@@ -1,4 +1,5 @@
 import pandas as pd
+from pathlib import Path
 
 class ETL_pipeline():
 
@@ -81,21 +82,17 @@ class ETL_pipeline():
 
 
     def extract(self):
-        sales           = pd.read_csv(self.config.get('sales'))
-        items           = pd.read_csv(self.config.get('items'))
-        item_categories = pd.read_csv(self.config.get('item_categories'))
-        shops           = pd.read_csv(self.config.get('shops'))
-        test            = pd.read_csv(self.config.get('test'))
+        sales = pd.read_csv(self.config.get('sales'))
         self.logger.info('Data loaded successfully')
-        return sales, items, item_categories, shops, test
+        return sales
 
-    def run_etl(self, validator_object=None, dry_run: bool=True):
+    def run(self, validator_object=None, validation_schema=None, dry_run: bool=True):
         self.logger.info('\n\n\n=== ETL process started ===')
-        sales, items, item_categories, shops, test = self.extract()
+        sales = self.extract()
         sales = self.transform(sales)
 
-        if validator_object is not None:
-            sales = validator_object.validate(sales)
+        if validator_object and validation_schema:
+            sales = validator_object.validate(schema = validation_schema, df = sales, scheme_name='sales_cleaned')
         else:
             self.logger.warning('!!! No validation schema passed to etl pipeline\
                                 Pipeline made transformations without validation.')

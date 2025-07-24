@@ -3,7 +3,7 @@ from pathlib import Path
 class Config:
 
     def __init__(self, base_dir: Path = None, **custom_paths):
-        self.base_dir = base_dir or Path(__file__).resolve().parents[1] / 'data' # store all data in dedicated folder ⚠️
+        self.base_dir   = base_dir or Path(__file__).resolve().parents[1] / 'data' # store all data in dedicated folder ⚠️
         self.models_dir = base_dir or Path(__file__).resolve().parents[1] / 'models'
 
         '''
@@ -134,13 +134,12 @@ class Config:
             'city',
             'date_block_num', 'item_id']
         }
-    
     def get_xgb(self, key: str):
          return self._xgb_model[key]
         
     def get(self, key : str) -> Path:
             if key not in self._config:
-                raise KeyError(f"Config key '{key}' not found.\nPossible keys: {self.keys()}")
+                raise KeyError(f"Config key '{key}' not found.\nPossible keys: {self.keys()}")     
             return self._config[key]
     
     def set(self, key: str, value: Path | str) -> None:

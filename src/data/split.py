@@ -24,7 +24,7 @@ class Split():
 
 
     def load(self, train_x, train_y, predict):
-        self.logger.info(f'Starting to save data to {self.config.get('processed_dir')}...')
+        self.logger.info(f"Starting to save data to {self.config.get('processed_dir')}...")
         train_x.to_parquet(self.config.get('train_x'), engine='pyarrow')
         train_y.to_parquet(self.config.get('train_y'), engine='pyarrow')
         predict.to_parquet(self.config.get('inference'), engine='pyarrow')

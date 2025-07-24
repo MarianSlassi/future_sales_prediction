@@ -20,6 +20,7 @@ def get_logger(config, name: str, log_file: str = None) -> logging.Logger:
     # returns ready to use logger with name from parameters
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
+    logger.propagate = False
 
     if not logger.handlers:
         # If folder doens't exist --> create, if no such path --> create full path with parents

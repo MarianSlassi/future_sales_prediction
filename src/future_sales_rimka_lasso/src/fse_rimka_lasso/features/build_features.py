@@ -37,6 +37,7 @@ class BuildFeatures():
         self.logger.info('All raw data has been extracted\n')
         return sales, items, items_categories, shops, test
 
+
     def blank_schema(self, sales):
         self.logger.info('Creating full schema of items sold in every month for all shops...')
 
@@ -122,10 +123,10 @@ class BuildFeatures():
         sales = sales.merge(items, on='item_id', how='left')
         sales = sales.merge(items_categories, on = 'item_category_id', how = 'left')
         sales = sales.merge(shops, on = 'shop_id', how = 'left')
-        del items, items_categories, shops
-        gc.collect()
         self.size_memory_info(df = sales, name = 'sales_train' )
         return sales
+
+
 
     def month_aggregations(self, full_df: pd.DataFrame, sales: pd.DataFrame) -> pd.DataFrame:
         self.logger.info('Starting aggregating target for other features...')
@@ -190,7 +191,7 @@ class BuildFeatures():
         self.logger.info('Starting leakage-free target expanding-window aggregation:')
         
         aggregating_target_by = [['item_id', 'shop_id'], ['item_id'], ['shop_id']]
-        self.logger.info(f"aggregating_target_by = {aggregating_target_by}")
+        self.logger.info("aggregating_target_by = [['item_id', 'shop_id'], ['item_id'], ['shop_id']]")
 
         for feature in aggregating_target_by:
             col = '_'.join(['target_aggregated_mean_premonthes', *feature])
@@ -295,11 +296,13 @@ class BuildFeatures():
             self.logger.info(f'Memory usage reduced by: {(mem_start-mem_end)/ (1024**2)} MB')
         return full_df
 
+
+
     def lags(self, full_df, additional: list[str]=['was_item_price_outlier', 'was_item_cnt_day_outlier', 'item_price']):
         self.logger.info('Starting to create lags...')
 
         all_obs_combination_by = ['date_block_num', 'shop_id', 'item_id']
-        shift_range = [1, 2, 3, 12]
+        shift_range = [1, 2, 3]
         shifted_columns = [c for c in full_df if 'target' in c]
         shifted_columns = shifted_columns + additional
 
@@ -315,6 +318,7 @@ class BuildFeatures():
 
             del temp
             gc.collect()
+    
         full_df.fillna(0)
         self.logger.info(f'Lags have been created for {shifted_columns}...')
         self.size_memory_info(full_df)

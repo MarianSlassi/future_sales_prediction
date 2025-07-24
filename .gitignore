@@ -9,6 +9,7 @@ models/
 #Local variables
 .venv/
 .vscode/
+__pycache__/
 
 #Personal variables
 temp.py
@@ -16,7 +17,11 @@ daily_logging/
 notebooks/test.ipynb
 notebooks/notes.ipynb
 img/
-future_sales_rimka_lasso/
+
+#Package
+dist/
+tests/
+fse_rimka_lasso.egg-info
 
 #Open later:
 mlruns/
