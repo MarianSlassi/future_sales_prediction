@@ -1,12 +1,12 @@
-from src.config import Config
-from src.utils.logger import get_logger
-from src.data.etl import ETL_pipeline
-from src.validation.schema_cleaned import SchemaSales
-from src.features.build_features import BuildFeatures
-from src.validation.scheme_features import SchemaFeatures
-from src.validation.validator import Validator
-from src.data.split import Split
-from src.models.XGB_model import XGB_model
+from src.fsp_ms.config import Config
+from src.fsp_ms.utils.logger import get_logger
+from src.fsp_ms.data.etl import ETL_pipeline
+from src.fsp_ms.validation.schema_cleaned import SchemaSales
+from src.fsp_ms.features.build_features import BuildFeatures
+from src.fsp_ms.validation.scheme_features import SchemaFeatures
+from src.fsp_ms.validation.validator import Validator
+from src.fsp_ms.data.split import Split
+from src.fsp_ms.models.XGB_model import XGB_model
 
 # To run this file use following command from ROOT in console:  ``python -m src.scripts.train`` 
 if __name__ == '__main__':

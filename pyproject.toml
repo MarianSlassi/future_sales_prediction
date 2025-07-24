@@ -1,18 +1,25 @@
 [project]
-name = "fse_rimka_lasso"
-version = "0.1.0"
+name = "fsp_ms"
+version = "0.1.1"
 description = "Project for future sales prediction, data preprocessing, and model training"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.9"
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
 dependencies = [
-    "scikit-learn==1.7.0",
-    "pandas==2.3.1",
-    "numpy==2.2.0",
-    "pandera==0.25.0",
+    "scikit-learn>=1.2,<1.8",
+    "pandas>=1.5,<2.3",
+    "numpy>=1.21,<2.3",
+    "pandera>=0.10.0",
     "tqdm==4.67.1",
     "joblib==1.5.1",
-    "xgboost==3.0.2",
-    "pyarrow==20.0.0",
+    "xgboost >= 1.6.2",
+    "pyarrow<=20.0.0",
+    "typing-inspect>=0.6.0"
+]
+
+[project.optional-dependencies]
+dev = [
     "matplotlib==3.10.3",
     "optuna==4.4.0",
     "plotly==6.2.0",
@@ -20,4 +27,18 @@ dependencies = [
     "seaborn==0.13.2",
     "mlflow==3.1.1",
     "shap==0.48.0",
+    "ipykernel>=6.30.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/MarianSlassi/future_sales_prediction"
+
+[build-system]
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src/fsp_ms"}
+
+[tool.setuptools.packages.find]
+where = ["src/fsp_ms"]

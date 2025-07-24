@@ -21,7 +21,7 @@ img/
 #Package
 dist/
 tests/
-fse_rimka_lasso.egg-info
+fse_rimka_lasso.egg-info/
 
 #Open later:
 mlruns/

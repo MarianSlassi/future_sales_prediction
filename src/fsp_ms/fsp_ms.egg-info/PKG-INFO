@@ -1,3 +1,32 @@
+Metadata-Version: 2.4
+Name: fsp_ms
+Version: 0.1.1
+Summary: Project for future sales prediction, data preprocessing, and model training
+License-Expression: MIT
+Project-URL: Homepage, https://github.com/MarianSlassi/future_sales_prediction
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+License-File: LICENCE
+Requires-Dist: scikit-learn<1.8,>=1.2
+Requires-Dist: pandas<2.3,>=1.5
+Requires-Dist: numpy<2.3,>=1.21
+Requires-Dist: pandera>=0.10.0
+Requires-Dist: tqdm==4.67.1
+Requires-Dist: joblib==1.5.1
+Requires-Dist: xgboost>=1.6.2
+Requires-Dist: pyarrow<=20.0.0
+Requires-Dist: typing-inspect>=0.6.0
+Provides-Extra: dev
+Requires-Dist: matplotlib==3.10.3; extra == "dev"
+Requires-Dist: optuna==4.4.0; extra == "dev"
+Requires-Dist: plotly==6.2.0; extra == "dev"
+Requires-Dist: scipy==1.16.0; extra == "dev"
+Requires-Dist: seaborn==0.13.2; extra == "dev"
+Requires-Dist: mlflow==3.1.1; extra == "dev"
+Requires-Dist: shap==0.48.0; extra == "dev"
+Requires-Dist: ipykernel>=6.30.0; extra == "dev"
+Dynamic: license-file
+
 This is a simple librarary to transofrm data, train model, and make predictions.
 If you using collab or kaggle notebook, please import this package as 
 ---
