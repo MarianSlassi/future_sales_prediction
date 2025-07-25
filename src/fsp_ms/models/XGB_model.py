@@ -15,7 +15,7 @@ class XGB_model():
         X = pd.read_parquet(self.config.get('train_x'))
         y = pd.read_parquet(self.config.get('train_y'))
         return X, y
-    
+
     def get_inference_data(self):
         self.logger.info('Uploading inference data...')
         inference_for = pd.read_parquet(self.config.get('inference'))
@@ -26,7 +26,7 @@ class XGB_model():
         self.logger.info(f'Saving model to {path}...')
         with open(path, 'wb') as f:
             pickle.dump(self.model, f)
-    
+
 
     def train(self, save: bool=False):
         params =  self.config.get_xgb('xgb_params')
@@ -47,7 +47,7 @@ class XGB_model():
         with open(path, 'rb') as f:
             self.model = pickle.load(f)
         self.logger.info('Model uploaded successfully')
-    
+
     def predict(self, load: bool=True, save: bool=True):
         self.logger.info('Starting prediction function...')
         if load:

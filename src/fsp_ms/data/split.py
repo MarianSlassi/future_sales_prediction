@@ -1,7 +1,7 @@
 import pandas as pd
 
 class Split():
-    
+
     def __init__(self, config, logger):
         self.config = config
         self.logger = logger
@@ -37,5 +37,3 @@ class Split():
         # train_x, train_y, predict = self.split(full_df)
         # self.load(train_x, train_y, predict)
         self.logger.info("\n=== SPLITTING process process finished ===\n\n\n\n\n")
-
-

@@ -8,7 +8,7 @@ from src.fsp_ms.validation.validator import Validator
 from src.fsp_ms.data.split import Split
 from src.fsp_ms.models.XGB_model import XGB_model
 
-# To run this file use following command from ROOT in console:  ``python -m src.scripts.train`` 
+# To run this file use following command from ROOT in console:  ``python -m src.scripts.train``
 if __name__ == '__main__':
     # Common config for all objects
     config = Config()
@@ -40,13 +40,13 @@ if __name__ == '__main__':
     build_features.run(validator_object = fe_validator, validation_schema = features_schema, dry_run = False )
 
     # Split
-    
+
     logger_split = get_logger(config=config, name = "split", \
                             log_file = config.get('log_file_split'))
     split = Split(config, logger_split)
     split.run()
 
-    # Model 
+    # Model
 
     logger_model = get_logger(config=config, name = "model", log_file= config.get('log_file_model'))
 

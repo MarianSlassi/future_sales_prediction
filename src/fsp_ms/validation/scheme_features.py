@@ -12,7 +12,7 @@ class SchemaFeatures:
                 "item_category_id": pa.Column(pa.Int32, Check.in_range(min_value=0, max_value=83)),
                 "general_item_category_name": pa.Column(pa.Int8, Check.in_range(min_value=0, max_value=14)),
                 "city": pa.Column(pa.Int8, Check.in_range(min_value=0, max_value=30)),
-                "month": pa.Column(pa.Int8, Check.in_range(min_value=1, max_value=12)), 
+                "month": pa.Column(pa.Int8, Check.in_range(min_value=1, max_value=12)),
                 "year": pa.Column(pa.Int32, Check.isin([2013, 2014, 2015])),
 
                 # Binary flag columns (0 or 1):

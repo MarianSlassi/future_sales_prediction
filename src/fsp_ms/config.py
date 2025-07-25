@@ -11,22 +11,22 @@ class Config:
         1. Don't change variables names, only path.
         2. If you change path, it's up to you, but remember it's never late to turn back
         3. Configs sorted vice versa on purpose.
-        Due to expecation you will like to change them as less 
-        as you get closer to raw data. 
+        Due to expecation you will like to change them as less
+        as you get closer to raw data.
 
         Instance of usage:
         cfg = Config(
             base_dir=Path("my_data_folder"),
-            raw_dir=Path("/mnt/drive/datasets/raw"),  
-            logs_dir=Path("/tmp/logs")                
+            raw_dir=Path("/mnt/drive/datasets/raw"),
+            logs_dir=Path("/tmp/logs")
         )
 
         '''
-        
+
         def override_or_default(key: str, default: Path):
-            path =  Path(custom_paths.get(key, default)) # if key exists in custom_path - return it as path, else take 'defatult' var 
+            path =  Path(custom_paths.get(key, default)) # if key exists in custom_path - return it as path, else take 'defatult' var
             path.mkdir(parents=True, exist_ok=True)
-            return path 
+            return path
 
         logs_dir      = override_or_default('logs_dir', self.base_dir / '07_logs')
         predict_dir   = override_or_default('predict_dir', self.base_dir / '06_predictions')
@@ -37,7 +37,7 @@ class Config:
         raw_dir       = override_or_default('raw_dir', self.base_dir / '01_raw')
         models_dir    = override_or_default('models_dir', self.models_dir)
 
-        
+
         self._config = {
             # Logs _07
             'logs_dir':                 logs_dir,
@@ -134,15 +134,15 @@ class Config:
             'city',
             'date_block_num', 'item_id']
         }
-    
+
     def get_xgb(self, key: str):
          return self._xgb_model[key]
-        
+
     def get(self, key : str) -> Path:
             if key not in self._config:
                 raise KeyError(f"Config key '{key}' not found.\nPossible keys: {self.keys()}")
             return self._config[key]
-    
+
     def set(self, key: str, value: Path | str) -> None:
             if 'dir' in key:
                 raise KeyError(f'You can only set base directories when creating config object')
@@ -150,18 +150,15 @@ class Config:
 
     def as_dict(self) -> dict[str, Path]:
           return self._config.copy()
-    
+
     def keys(self) -> list[str]:
           return list(self._config.keys())
 
     def __getitem__(self, key: str) -> Path:
-        return self.get(key)                                             # To have possibility call keys through dict syntax e.g. config['key'] 
-    
+        return self.get(key)                                             # To have possibility call keys through dict syntax e.g. config['key']
+
     def __contains__(self, key: str) -> bool:
         return key in self._config                                       # To support expressions as " if 'key' in config "
-    
+
     def __repr__(self) -> str:
           return '\n'.join(f"{k}: {v}" for k, v in self._config.items()) # To use syntax as "print(config)"
-
-    
-    

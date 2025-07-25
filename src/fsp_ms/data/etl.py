@@ -42,7 +42,7 @@ class ETL_pipeline():
         df = df.groupby(['date', 'date_block_num', 'shop_id', 'item_id', 'item_price'], as_index=False).agg({'item_cnt_day': 'sum'})
         self.logger.info(f'Number of duplicates after grouping : {df.duplicated().sum()}')
         return df
-    
+
     def date_conversion(self, sales):
         sales['date'] = pd.to_datetime(sales['date'], format='%d.%m.%Y')
         self.logger.info("Converted 'date' to datetime")
@@ -96,7 +96,7 @@ class ETL_pipeline():
         else:
             self.logger.warning('!!! No validation schema passed to etl pipeline\
                                 Pipeline made transformations without validation.')
-        
+
         if not dry_run:
             self.load(sales)
         self.logger.info("\n=== ETL process finished ===\n\n\n\n")

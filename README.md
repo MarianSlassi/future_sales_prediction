@@ -1,5 +1,5 @@
 This is a simple librarary to transofrm data, train model, and make predictions.
-If you using collab or kaggle notebook, please import this package as 
+If you using collab or kaggle notebook, please import this package as
 ---
 !pip install \
   --index-url https://test.pypi.org/simple/ \
@@ -12,7 +12,7 @@ If you using collab or kaggle notebook, please import this package as
 # Google Collab
 To run project in google collab save raw data to /content/data as following:
 ```
-    🐢How to save raw data: 
+    🐢How to save raw data:
     content/
         └──data/
             └──01_raw/
@@ -75,7 +75,7 @@ logger_split = get_logger(config=config, name = "split", \
 split = Split(config, logger_split)
 split.run()
 
-# Model 
+# Model
 
 logger_model = get_logger(config=config, name = "model", log_file= config.get('log_file_model'))
 

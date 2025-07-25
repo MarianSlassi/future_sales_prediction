@@ -40,10 +40,10 @@
     │   │   └── predict_model.py
     │   └── utils/
     │       ├── helpers.py
-    │       └── logger.py   
+    │       └── logger.py
 
 
-    🐢How to save raw data: 
+    🐢How to save raw data:
         raw/
         ├── dicts/
         │   ├── item_categories.csv
@@ -56,14 +56,14 @@
 
 
 ⚒️ **Base workflow (run files in the following order):**
-1. `project/data/raw`      ⚠️ before starting save competition data in this directory 
+1. `project/data/raw`      ⚠️ before starting save competition data in this directory
 2. `project/src/data/clean.py`          (schema runs automatically)
 3. `project/src/features/build_features.py`     (schema runs automatically)
-4. `project/src/data/split.py`      
+4. `project/src/data/split.py`
 5. `project/src/models/train_model.py`       (optionally)
-6. `project/src/models/predict_model.py`      
+6. `project/src/models/predict_model.py`
 ⚠️With current version we don't support running modules separatelly (as files), all that happens inside of run_all.py.
-You need to run it as module. To do that you need to set for interpretator ROOT of the project as a starting directory. 
+You need to run it as module. To do that you need to set for interpretator ROOT of the project as a starting directory.
 Should be done with:
 1. `cd \project`
 2. `python -m src.scripts.run_all`
@@ -101,7 +101,7 @@ Example: you can call the BuildFeatures object like this:
 
 😇 Utils usage:
 
-    🖇️Logger: 
+    🖇️Logger:
     from src.utils.logger import get_logger
     logger = get_logger("etl", config.get('log_file_name')) # Technically you can skip second argument, then it will be writen in file with current date. All log files managed through Config
 
@@ -121,24 +121,14 @@ Example: you can call the BuildFeatures object like this:
 
 🪵 **Interim** — contains data exported to support transformations in notebooks.
 
-- `data_checkpoint_full_df.parquet`  
+- `data_checkpoint_full_df.parquet`
   ⤷ At the feature engineering notebook, some transformations are time-consuming. This file stores an intermediate result to speed up debugging — useful when rerunning cells from the beginning.
 
-- `full_df_final.csv`  
+- `full_df_final.csv`
   ⤷ A snapshot of the final observations after transformations in the feature engineering notebooks. Used primarily to develop validation pipelines.
 
-- `sales_for_eda.parquet`  
-  ⤷ Created at the end of the DQC notebook. Unlike the cleaned version, it includes values from dicts for visualization and data consistency checks.  
+- `sales_for_eda.parquet`
+  ⤷ Created at the end of the DQC notebook. Unlike the cleaned version, it includes values from dicts for visualization and data consistency checks.
   ⤷ Later, the same transformation logic was moved into the EDA notebook, but a commented-out line in DQC remains for reference:
   `sales.to_parquet(config.get('sales_for_eda'), engine='pyarrow')`</br>
   ⤷ You can uncomment line above in DQC, as well as import line in EDA `sales = pd.read_parquet(config.get('sales_for_eda'))` and trasform data with notebook. In this case comment out "Merging Dicts" block in EDA.
-
-
-
-
-
-
-
-
-
-

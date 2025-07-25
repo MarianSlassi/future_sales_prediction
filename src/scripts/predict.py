@@ -1,6 +1,6 @@
 from src.fsp_ms.models.XGB_model import XGB_model
 from src.fsp_ms.config import Config
-from src.fsp_ms.utils.logger import get_logger 
+from src.fsp_ms.utils.logger import get_logger
 
 if __name__ == '__main__':
     # python -m src.scripts.predict

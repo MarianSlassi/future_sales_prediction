@@ -16,7 +16,7 @@ logger.info("Training started")
 
 * `name (str)`: Name of the logger. Appears in the log output.
 * `log_file (str, optional)`: Custom log file name (no path). If not provided, a file is created with a timestamp in the logs directory.
-  
+
 ## 📁 Log Directory
 
 The log file is saved in the directory defined in your config:

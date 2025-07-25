@@ -264,18 +264,18 @@ if __name__ == '__main__':
 
 
 Possibilities:
-1. Changing any of those parametrs inside of a script will cause a schemma error. Yet features schema rebuild script isn't included in the project. 
-2. For downcast dtypes when it used inside of tqdm loop, we avoid interrupting console output and might like to stop logging inside of tqdm, that's why for `.downcast_dtypes()` method we have argument as `logs: bool = False` by default it doesn't show in logs how much script decreased a memory of a given DataFrame. We also have `only_to_show_loses: bool = False` parametr in case if we want to see ONLY how much memory will be reduced but not reducing this, pay attention when enabling this flag, because downcasting itslelf won't work. 
+1. Changing any of those parametrs inside of a script will cause a schemma error. Yet features schema rebuild script isn't included in the project.
+2. For downcast dtypes when it used inside of tqdm loop, we avoid interrupting console output and might like to stop logging inside of tqdm, that's why for `.downcast_dtypes()` method we have argument as `logs: bool = False` by default it doesn't show in logs how much script decreased a memory of a given DataFrame. We also have `only_to_show_loses: bool = False` parametr in case if we want to see ONLY how much memory will be reduced but not reducing this, pay attention when enabling this flag, because downcasting itslelf won't work.
 3. For `.check_leakege()`  you can send as argument `constant_features` for those features checking for all Nans in test set inside of full_df will be skipped. By default it includes features as `{'target','item_id_was_in_test', 'shop_id_was_in_test','not_full_historical_data'}`
 4. For `.deltas()` you also can choose from which feature you want to create deltas for the last two monthes, and "predictions" for the next two. By default it includes following features: `['target', 'target_item_id_total', 'target_shop_id_total','target_item_category_id_total',\
                             'target_general_item_category_name_total', 'target_city_total']`
 5. For `.lags()` you can also pass features names for which to create lags, by default script creates lags which has 'target' string inside of columns names. And you can add some, by default following are added: `['was_item_price_outlier', 'was_item_cnt_day_outlier', 'item_price']`
-    
+
 Syntax of script:
 Every method represents a heading from notebook. Every sub heading devvided by two \n. Every cell devided by one \n
 
 Architecture:
-Better to store variables locally across methods and keep instance variables of object as much clean as possible, since we have big enough dataframe for memmory malloc or overflow. 
+Better to store variables locally across methods and keep instance variables of object as much clean as possible, since we have big enough dataframe for memmory malloc or overflow.
 
 RAW:
 </br>Methods:
