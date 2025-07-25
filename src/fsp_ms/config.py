@@ -3,8 +3,8 @@ from pathlib import Path
 class Config:
 
     def __init__(self, base_dir: Path = None, **custom_paths):
-        self.base_dir = base_dir or Path(__file__).resolve().parents[1] / 'data' # store all data in dedicated folder ⚠️
-        self.models_dir = base_dir or Path(__file__).resolve().parents[1] / 'models'
+        self.base_dir = base_dir or Path(__file__).resolve().parents[2] / 'data' # store all data in dedicated folder ⚠️
+        self.models_dir = base_dir or Path(__file__).resolve().parents[2] / 'models'
 
         '''
         Rules of devine config:

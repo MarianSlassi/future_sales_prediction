@@ -4,9 +4,9 @@ If you using collab or kaggle notebook, please import this package as
 !pip install \
   --index-url https://test.pypi.org/simple/ \
   --extra-index-url https://pypi.org/simple \
-  fse-rimka-lasso
+  fsp-ms
 </br></br>*Or you can use with activated .venv:*
-</br>uv pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple fse-rimka-lasso
+</br>uv pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple fsp-ms
 
 
 # Google Collab
@@ -83,3 +83,10 @@ model = XGB_model(config, logger_model)
 model.train(save = True)
 
 ```
+
+
+### Dev info:
+To upload package new version go to root and write to console:
+ - `Remove-Item -Recurse -Force .\dist\`
+ - `py -m build`
+ - `py -m twine upload --repository testpypi dist/* --verbose`

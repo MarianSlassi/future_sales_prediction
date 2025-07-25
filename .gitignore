@@ -1,9 +1,9 @@
 # Igonre data/ folder but not source/data
 data/
-!src/data/
+!src/fsp_ms/data
 catboost_info/
 models/
-!src/models/
+!src/fsp_ms/models
 
 
 #Local variables
@@ -21,7 +21,7 @@ img/
 #Package
 dist/
 tests/
-fse_rimka_lasso.egg-info/
+*.egg-info/
 
 #Open later:
 mlruns/

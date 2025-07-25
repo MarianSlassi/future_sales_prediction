@@ -312,10 +312,10 @@ class BuildFeatures():
 
             full_df = pd.merge(full_df, temp, on = all_obs_combination_by, how= 'left')
             full_df = self.downcast_dtypes(full_df = full_df, logs=False)
-
+    
             del temp
             gc.collect()
-        full_df.fillna(0)
+        full_df = full_df.fillna(0)
         self.logger.info(f'Lags have been created for {shifted_columns}...')
         self.size_memory_info(full_df)
         return full_df # added possibility to chose additional lags features
@@ -381,7 +381,7 @@ class BuildFeatures():
         leakage_features = list(leakage_features - constant_features)
 
         full_df = full_df.drop(columns=leakage_features, axis = 1)
-        self.logger.info('Leakage features were removed')
+        self.logger.info(f'Leakage features were removed, those are : {leakage_features}')
         return full_df
 
 
