@@ -1,19 +1,8 @@
-import pandas as pd
 import pandera.pandas as pa
-from pandera.pandas import Column, Check
-
-from pathlib import Path
-import sys
-ROOT = Path(__file__).resolve().parents[2]
-print(ROOT)
-sys.path.append(str(ROOT))
-from src.config import Config
-from src.utils.logger import get_logger
-
+from pandera.pandas import Check
 
 class SchemaFeatures:
-    def __init__(self, logger):
-        self.logger = logger
+    def __init__(self):
         self.schema = pa.DataFrameSchema(
             {
                 # Core identifiers and time-related columns:
@@ -23,7 +12,7 @@ class SchemaFeatures:
                 "item_category_id": pa.Column(pa.Int32, Check.in_range(min_value=0, max_value=83)),
                 "general_item_category_name": pa.Column(pa.Int8, Check.in_range(min_value=0, max_value=14)),
                 "city": pa.Column(pa.Int8, Check.in_range(min_value=0, max_value=30)),
-                "month": pa.Column(pa.Int8, Check.in_range(min_value=1, max_value=12)), 
+                "month": pa.Column(pa.Int8, Check.in_range(min_value=1, max_value=12)),
                 "year": pa.Column(pa.Int32, Check.isin([2013, 2014, 2015])),
 
                 # Binary flag columns (0 or 1):
@@ -58,21 +47,3 @@ class SchemaFeatures:
             unique=["date_block_num", "shop_id", "item_id"],
             strict=True
         )
-    def validate(self, df: pd.DataFrame) -> pd.DataFrame:
-        self.logger.info(f'Initializing scheme_features.py...\n')
-        #self.logger.info(f'Starting feature validation with {self.config.get('features')} , uploading it in memory...') # Nedded to add config for debugging
-        self.logger.info(f'Starting validation for features Dframe with {len(df)} records...')
-
-        try:
-            validated_df = self.schema.validate(df)
-            self.logger.info(f'Data frame has passed validation!\n')
-        except pa.errors.SchemaErrors as e:
-            self.logger.error("!!! DataFrame validation failed.")
-            self.logger.error(f"\n{e.failure_cases}")  # This logs the specific columns, checks, and offending values
-            raise
-
-        return validated_df
-
-    
-    
-    

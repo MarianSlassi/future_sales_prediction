@@ -1,16 +1,7 @@
 import logging
 from datetime import datetime
 
-# Config initialisation
-from pathlib import Path
-import sys
-
-from src.config import Config
-config = Config()
-
-LOG_DIR = config.get('logs_dir')
-
-def get_logger(name: str, log_file: str = None) -> logging.Logger:
+def get_logger(config, name: str, log_file: str = None) -> logging.Logger:
     """
     Returns a configured logger that writes to both a file and the console.
 
@@ -25,7 +16,7 @@ def get_logger(name: str, log_file: str = None) -> logging.Logger:
         logger = get_logger("train_model")
         logger.info("Training started")
     """
-
+    LOG_DIR = config.get('logs_dir')
     # returns ready to use logger with name from parameters
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)

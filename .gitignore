@@ -1,16 +1,30 @@
 # Igonre data/ folder but not source/data
 data/
-!src/data/
+!src/fsp_ms/data
+catboost_info/
+models/
+!src/fsp_ms/models
+
 
 #Local variables
 .venv/
 .vscode/
+__pycache__/
 
 #Personal variables
 temp.py
 daily_logging/
 notebooks/test.ipynb
 notebooks/notes.ipynb
+img/
+
+#Package
+dist/
+tests/
+*.egg-info/
+
+#Open later:
+mlruns/
 
 # File types
 *.pyc
@@ -18,6 +32,7 @@ notebooks/notes.ipynb
 *.xlsx
 *.json
 .env
+.pypirc
 *.log
 *.parquet
-*.png
+*.pkl

@@ -3,21 +3,12 @@ import pandas as pd
 import itertools
 import tqdm
 import gc
-import logging
-
-from pathlib import Path
-
-from src.config import Config
-from src.utils.logger import get_logger
-from src.validation.scheme_features import SchemaFeatures
-
 
 class BuildFeatures():
     def __init__(self,config, logger):
         self.config = config
         self.logger = logger
 
-    
     # Info: size_memory_info(df = full_df, name='full_df')
     def size_memory_info(self, df: pd.DataFrame, name: str = 'current df'):
         size_in_bytes = df.memory_usage(deep=True).sum()
@@ -28,7 +19,7 @@ class BuildFeatures():
                     \nNumber of rows in this table: {df.shape[0]}\
                     \nNumber of columns in this table: {df.shape[1]}\n")
     # Probably move to helpers.py
-    
+
     def extract(self):
         self.logger.info('Extracting all raw data...')
         # Main dataset
@@ -39,18 +30,17 @@ class BuildFeatures():
         items_categories = pd.read_csv(self.config.get('item_categories'))
         shops = pd.read_csv(self.config.get('shops'))
 
-        test = pd.read_csv(self.config.get('test')) 
-        # the test set. You need to forecast the sales 
+        test = pd.read_csv(self.config.get('test'))
+        # the test set. You need to forecast the sales
         # for these shops and products for November 2015.
 
         self.logger.info('All raw data has been extracted\n')
         return sales, items, items_categories, shops, test
 
-
     def blank_schema(self, sales):
         self.logger.info('Creating full schema of items sold in every month for all shops...')
 
-        ### Creating full schema of montly sold items for every shop - { df } 
+        ### Creating full schema of montly sold items for every shop - { df }
         all_obs_combination_by = ['date_block_num', 'shop_id', 'item_id']
         all_shops_items = []
 
@@ -73,7 +63,8 @@ class BuildFeatures():
                                                             'sum','was_item_price_outlier':'mean', \
                                                                 'was_item_cnt_day_outlier':'mean'})
         aggregated.rename(columns={'item_cnt_day': 'target'}, inplace = True)
-
+        # aggregated['target'] = aggregated['target'].clip(0,20)
+        # self.logger.info('Clipping target⚒️⚠️🫡')
         self.logger.info('Sales successfully aggregated at the monthly level, item_cnt_month columns marked as "target"')
         return aggregated
 
@@ -86,7 +77,7 @@ class BuildFeatures():
         self.logger.info("Merged successfully")
         return full_df
 
-    def concat_test(self, full_df, test): 
+    def concat_test(self, full_df, test):
         test['date_block_num'] = 34
         self.logger.info('Assigned value 34 to date_block_num for the test set')
 
@@ -94,7 +85,7 @@ class BuildFeatures():
         full_df = pd.concat([full_df, test], ignore_index= True)
         full_df = full_df.drop('ID',axis=1)
         self.logger.info('Concatenated successfully with resulting full_df table')
-        self.logger.info(f'Percantage of zero values in target: {(full_df[full_df['target']==0]).shape[0] /  full_df.shape[0] :.2f}')
+        self.logger.info(f"Percantage of zero values in target: {(full_df[full_df['target']==0]).shape[0] /  full_df.shape[0] :.2f}")
         self.size_memory_info(df = full_df, name= "full_df")
         return full_df
 
@@ -131,10 +122,10 @@ class BuildFeatures():
         sales = sales.merge(items, on='item_id', how='left')
         sales = sales.merge(items_categories, on = 'item_category_id', how = 'left')
         sales = sales.merge(shops, on = 'shop_id', how = 'left')
+        del items, items_categories, shops
+        gc.collect()
         self.size_memory_info(df = sales, name = 'sales_train' )
         return sales
-
-
 
     def month_aggregations(self, full_df: pd.DataFrame, sales: pd.DataFrame) -> pd.DataFrame:
         self.logger.info('Starting aggregating target for other features...')
@@ -162,8 +153,9 @@ class BuildFeatures():
                 temp = sales.groupby(group_cols, as_index=False)['item_cnt_day'].agg(agg_func)
                 temp = temp.rename(columns={'item_cnt_day': col_name})
 
-                full_df = full_df.merge(temp, on=group_cols, how='left') 
-            
+                full_df = full_df.merge(temp, on=group_cols, how='left')
+                del temp
+                gc.collect()
             self.logger.info('Grouped successfully')
         self.logger.info('Aggregations finished successfully')
         self.size_memory_info(full_df)
@@ -188,7 +180,7 @@ class BuildFeatures():
 
         self.logger.info('Marked first month with not_full_historical_data')
         full_df.loc[full_df['date_block_num'] == 0, 'not_full_historical_data'] = 1
-        full_df['not_full_historical_data'] = full_df['not_full_historical_data'].astype(np.int8)    
+        full_df['not_full_historical_data'] = full_df['not_full_historical_data'].astype(np.int8)
 
         self.logger.info('Items selling in this month first time are marked successfully')
         self.size_memory_info(full_df)
@@ -196,9 +188,9 @@ class BuildFeatures():
 
     def expanding_window(self, full_df):
         self.logger.info('Starting leakage-free target expanding-window aggregation:')
-        
+
         aggregating_target_by = [['item_id', 'shop_id'], ['item_id'], ['shop_id']]
-        self.logger.info("aggregating_target_by = [['item_id', 'shop_id'], ['item_id'], ['shop_id']]")
+        self.logger.info(f"aggregating_target_by = {aggregating_target_by}")
 
         for feature in aggregating_target_by:
             col = '_'.join(['target_aggregated_mean_premonthes', *feature])
@@ -222,6 +214,8 @@ class BuildFeatures():
                 agg = full_df.loc[current_month][feature].merge(temp, on=feature, how='left')[['target']].copy()
                 agg.set_index(full_df.loc[current_month].index, inplace=True)
                 full_df.loc[current_month, col2] = agg['target']
+                del valid_month, current_month, temp, agg
+                gc.collect()
 
             self.logger.info(f'Expanding window statistics for {feature} have been created')
 
@@ -262,7 +256,7 @@ class BuildFeatures():
             self.logger.info('All observations were marked for test as well')
         else:
             self.logger.warning(f'!!! Found {unmarked.shape[0]} observation in test which are not marked as they are in test')
-        
+
         self.logger.info('Shops and items which contained in test have been marked')
         self.size_memory_info(full_df)
         return full_df
@@ -286,7 +280,7 @@ class BuildFeatures():
                 if min_val < -2_147_483_648 or max_val > 2_147_483_647:
                     self.logger.info(f"{col}: OVERFLOW when downcasted to int32 (values out of range)")
             return full_df
-        
+
         mem_start = full_df.memory_usage(deep=True).sum()
 
         float_cols = full_df.select_dtypes(include=['float64']).columns
@@ -316,12 +310,12 @@ class BuildFeatures():
             foo = lambda x: f'{x}_lag_{shift}' if x in shifted_columns else x
             temp = temp.rename(columns=foo)
 
-            full_df = pd.merge(full_df, temp, on = all_obs_combination_by, how= 'left').fillna(0)
+            full_df = pd.merge(full_df, temp, on = all_obs_combination_by, how= 'left')
             full_df = self.downcast_dtypes(full_df = full_df, logs=False)
 
             del temp
             gc.collect()
-        
+        full_df = full_df.fillna(0)
         self.logger.info(f'Lags have been created for {shifted_columns}...')
         self.size_memory_info(full_df)
         return full_df # added possibility to chose additional lags features
@@ -350,10 +344,12 @@ class BuildFeatures():
 
     def full_schema(self, sales, items, items_categories, shops, test) -> pd.DataFrame:
         self.logger.info('Creating a common dataframe with test, all items, and sales by months:')
-        
+
         df = self.blank_schema(sales)
         aggregated = self.sales_aggregation(sales)
         full_df = self.merge_df_aggregated(df, aggregated)
+        del df,aggregated
+        gc.collect()
         full_df = self.concat_test(full_df, test)
         items, shops, items_categories =  \
             self.encode_dicts(items, shops, items_categories)
@@ -361,9 +357,8 @@ class BuildFeatures():
         sales = self.merge_sales_dicts(sales, items, items_categories, shops)
         full_df = self.month_aggregations(full_df, sales)
         full_df = self.was_in_test(full_df, test)
-
         return full_df
-    
+
     def transform(self, full_df):
         full_df = self.first_month(full_df)
         full_df = self.expanding_window(full_df)
@@ -378,7 +373,7 @@ class BuildFeatures():
 
         # Make a boolean mask for columns to delete which consist\
         # of all 0 for all observations
-        leakage_true = list((temp == 0).sum() == 214200) 
+        leakage_true = list((temp == 0).sum() == 214200)
         del temp
         gc.collect()
         leakage_features = set(full_df.loc[:,leakage_true].columns)
@@ -386,7 +381,7 @@ class BuildFeatures():
         leakage_features = list(leakage_features - constant_features)
 
         full_df = full_df.drop(columns=leakage_features, axis = 1)
-        self.logger.info('Leakage features were removed')
+        self.logger.info(f'Leakage features were removed, those are : {leakage_features}')
         return full_df
 
 
@@ -395,23 +390,23 @@ class BuildFeatures():
         full_df = self.downcast_dtypes(full_df)
         full_df.to_parquet(self.config.get('features'), engine='pyarrow')
         #full_df.sample(100000).to_csv(config.get('full_df_test_csv'), index = False)
-        self.logger.info(f'full_df with test set and without leakage feature was saved to {self.config.get('features_dir')}')
+        self.logger.info(f"full_df with test set and without leakage features was saved to {self.config.get('features_dir')}")
         self.logger.info('Output function has been executed')
         self.size_memory_info(full_df)
 
-    def run(self,  validator_object=None, dry_run: bool=True):
+    def run(self,  validator_object=None, validation_schema=None,  dry_run: bool=True):
         self.logger.info('\n=== FEATURE ENGINEERING process started ===\n')
         #sales, items, items_categories, shops, test = self.extract()
         full_df = self.full_schema(*self.extract())
         full_df = self.transform(full_df)
         full_df = self.check_leakage(full_df)# can be moved inside self.output() or self.transform()
 
-        if validator_object is not None:
-            full_df = validator_object.validate(full_df)
+        if validator_object and validation_schema:
+            full_df = validator_object.validate(schema = validation_schema, df = full_df, scheme_name='feaures_engineering')
         else:
             self.logger.warning('!!! No validation schema passed to build_features pipeline\
                                 The pipeline performed transformations without validation.')
-        
+
         if not dry_run:
             self.output(full_df)
         self.logger.info("\n=== FEATURE ENGINEERING process finished ===\n\n\n\n\n")

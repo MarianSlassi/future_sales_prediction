@@ -1,15 +1,7 @@
-import numpy as np
 import pandas as pd
-import itertools
-import tqdm
-import gc
-
-from src.config import Config
-from src.utils.logger import get_logger
-
 
 class Split():
-    
+
     def __init__(self, config, logger):
         self.config = config
         self.logger = logger
@@ -32,7 +24,7 @@ class Split():
 
 
     def load(self, train_x, train_y, predict):
-        self.logger.info(f'Starting to save data to {self.config.get('processed_dir')}...')
+        self.logger.info(f"Starting to save data to {self.config.get('processed_dir')}...")
         train_x.to_parquet(self.config.get('train_x'), engine='pyarrow')
         train_y.to_parquet(self.config.get('train_y'), engine='pyarrow')
         predict.to_parquet(self.config.get('inference'), engine='pyarrow')
@@ -45,5 +37,3 @@ class Split():
         # train_x, train_y, predict = self.split(full_df)
         # self.load(train_x, train_y, predict)
         self.logger.info("\n=== SPLITTING process process finished ===\n\n\n\n\n")
-
-

@@ -1,144 +1,92 @@
-🔭 Project structure:
-
-    project/
-    │
-  
-    │
-    ├── reqirements.txt
-    │
-    ├── README.MD
-    │
-    ├── data/
-    │   ├── raw/            ← dicts + submission_data + sales_train.csv (⚠️check below for expected order)
-    │   ├── interim/        ← techincal folder, redundant but remained in case of need (⚠️ check below for data explanation)
-    │   ├── cleaned/        ← cleaned.parquet
-    │   ├── features/       ← final_df
-    │   ├── processed/      ← train/val/test
-    │   ├── predictions/    ← output.csv
-    │   └── logs/
-    │
-    ├── models/
-    │   └── model.pkl
-    │
-    ├── notebooks/
-    │   └── all_notebooks.ipynb
-    │
-    ├── src/
-    |   ├── config.py
-    |   |
-    │   ├── data/
-    │   │   ├── etl.py
-    │   │   └── split.py
-    │   ├── features/
-    │   │   └── build_features.py
-    │   ├── validation/
-    │   │   ├── schema_cleaned.py     ← for data after cleaning
-    │   │   ├── schema_features.py    ← for data after features engineering
-    │   │   └── validate.py           ← to chose which schema to use
-    │   ├── models/
-    │   │   ├── train_model.py
-    │   │   └── predict_model.py
-    │   └── utils/
-    │       ├── helpers.py
-    │       └── logger.py   
+This is a simple librarary to transofrm data, train model, and make predictions.
+If you using collab or kaggle notebook, please import this package as
+---
+!pip install \
+  --index-url https://test.pypi.org/simple/ \
+  --extra-index-url https://pypi.org/simple \
+  fsp-ms
+</br></br>*Or you can use with activated .venv:*
+</br>uv pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple fsp-ms
 
 
-    🐢How to save raw data: 
-        raw/
-        ├── dicts/
-        │   ├── item_categories.csv
-        │   ├── items.csv
-        │   └── shops.csv
-        ├── submission_data/
-        │   ├── sample_submission.csv
-        │   └── test.csv
-        └── sales_train.csv
+# Google Collab
+To run project in google collab save raw data to /content/data as following:
+```
+    🐢How to save raw data:
+    content/
+        └──data/
+            └──01_raw/
+                ├── dicts/
+                │   ├── item_categories.csv
+                │   ├── items.csv
+                │   └── shops.csv
+                ├── submission_data/
+                │   ├── sample_submission.csv
+                │   └── test.csv
+                └── sales_train.csv
+```
+And run folling code
+```
+import gc
+
+from fse_rimka_lasso import Config, get_logger, Validator, ETL_pipeline, SchemaSales, BuildFeatures, SchemaFeatures , Split , XGB_model
+from pathlib import Path
+colab_base_dir = Path("/content/data")
+
+# Common config for all objects
+config = Config(base_dir=colab_base_dir)
+
+logger_etl = get_logger(config=config, name = "etl", log_file = config.get('log_file_etl'))
+etl = ETL_pipeline(config, logger_etl)
+## Init: Validator and it's logger
+logger_etl_schema = get_logger(config=config, name ="validation_schema_cleaned"\
+                              , log_file=config.get('validation_schema_cleaned'))
+etl_validator = Validator(logger_etl_schema)
+### Init: Schema for Validator
+etl_schema = SchemaSales()
+## Run: etl transformation with transferring validator and validation schema
+etl.run(validator_object = etl_validator, validation_schema = etl_schema, dry_run= False)
+
+del logger_etl, etl, logger_etl_schema, etl_validator, etl_schema
+gc.collect()
+```
+### New cell
+```
+# FE
+logger_fe = get_logger(config=config, name = "build_features", \
+                    log_file = config.get('log_file_build_features'))
+build_features = BuildFeatures(config, logger_fe)
+## Init: Validator and it's logger
+features_validation_logger = get_logger(config=config, name = "validation_schema_features", \
+                    log_file = config.get('validation_schema_features'))
+fe_validator = Validator(features_validation_logger)
+### Init: Schema for Validator
+features_schema = SchemaFeatures()
+
+build_features.run(validator_object = fe_validator, validation_schema = features_schema, dry_run = False )
+
+del build_features
+gc.collect()
+
+# Split
+
+logger_split = get_logger(config=config, name = "split", \
+                        log_file = config.get('log_file_split'))
+split = Split(config, logger_split)
+split.run()
+
+# Model
+
+logger_model = get_logger(config=config, name = "model", log_file= config.get('log_file_model'))
+
+model = XGB_model(config, logger_model)
+model.train(save = True)
+
+```
 
 
-⚒️ **Base workflow (run files in the following order):**
-1. `project/data/raw`      ⚠️ before starting save competition data in this directory 
-2. `project/src/data/clean.py`          (schema runs automatically)
-3. `project/src/features/build_features.py`     (schema runs automatically)
-4. `project/src/data/split.py`      
-5. `project/src/models/train_model.py`       (optionally)
-6. `project/src/models/predict_model.py`      
-⚠️With current version we don't support running modules separatelly (as files), all that happens inside of run_all.py.
-You need to run it as module. To do that you need to set for interpretator ROOT of the project as a starting directory. 
-Should be done with:
-1. `cd \project`
-2. `python -m src.scripts.run_all`
-### How everything works?
-The architecture of the project is built on Dependency Injection (DI). Whenever you initiate any script—for example, to clean raw data—you should pass both the config object and the logger object into the constructor of the pipeline class.
-
-When running any script using the `.run()` method, you must also pass a validation schema object as an argument. And last but not least, when defining a validation schema instance, the logger must also be passed in as an argument. You can check how this is done in `project/src/utils/run_all.py`.
-
-If any transformation step fails schema validation, the entire script execution will be halted. To avoid this, you can set the strict=False parameter in the schema. Additionally, all schemas support input DataFrame modification, since every call to `.validate()` returns a new DataFrame. The logic for assigning these modified DataFrames is implemented in the `.output()` methods of transformation scripts such as `etl.py` and `build_features.py`.
-
-Our system also supports running `build_features.py` and `etl.py` scripts without producing any output DataFrame — this can be done using the `dry_run=False` flag.
-Example: you can call the BuildFeatures object like this:
-`BuildFeatures.run(fe_validator, dry_run=False)`.
-
-🏗️ Panned architecture imporvements:
-    -add local interpretator - uv, poetry
-
-📂 Directories/paths managment by config in root:
-
-    Notebooks:
-        from pathlib import Path
-        import sys
-        ROOT = Path().resolve().parent
-        sys.path.append(str(ROOT))
-        from config import Config
-        config = Config()
-
-    Scripts:
-        from pathlib import Path
-        import sys
-        ROOT = Path(__file__).resolve().parents[2]
-        sys.path.append(str(ROOT))
-        from config import Config
-        config = Config()
-
-😇 Utils usage:
-
-    🖇️Logger: 
-    from src.utils.logger import get_logger
-    logger = get_logger("etl", config.get('log_file_name')) # Technically you can skip second argument, then it will be writen in file with current date. All log files managed through Config
-
-    logger.info("Starting etl Process")
-    logger.warning("Something strange happened")
-    logger.error("Something went wrong")
-
-
-
-
-
-
-
-
-
-### 📁 Data: Interim
-
-🪵 **Interim** — contains data exported to support transformations in notebooks.
-
-- `data_checkpoint_full_df.parquet`  
-  ⤷ At the feature engineering notebook, some transformations are time-consuming. This file stores an intermediate result to speed up debugging — useful when rerunning cells from the beginning.
-
-- `full_df_final.csv`  
-  ⤷ A snapshot of the final observations after transformations in the feature engineering notebooks. Used primarily to develop validation pipelines.
-
-- `sales_for_eda.parquet`  
-  ⤷ Created at the end of the DQC notebook. Unlike the cleaned version, it includes values from dicts for visualization and data consistency checks.  
-  ⤷ Later, the same transformation logic was moved into the EDA notebook, but a commented-out line in DQC remains for reference:
-  `sales.to_parquet(config.get('sales_for_eda'), engine='pyarrow')`</br>
-  ⤷ You can uncomment line above in DQC, as well as import line in EDA `sales = pd.read_parquet(config.get('sales_for_eda'))` and trasform data with notebook. In this case comment out "Merging Dicts" block in EDA.
-
-
-
-
-
-
-
-
-
-
+### Dev info:
+To upload package new version go to root and write to console:
+ - `Remove-Item -Recurse -Force .\dist\`
+ - `py -m build`
+ - `py -m twine upload --repository testpypi dist/* --verbose`

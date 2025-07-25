@@ -1,10 +1,5 @@
 import pandas as pd
-import numpy as np
 from pathlib import Path
-
-from src.config import Config
-from src.utils.logger import get_logger
-from src.validation.schema_cleaned import SchemaSales
 
 class ETL_pipeline():
 
@@ -47,7 +42,7 @@ class ETL_pipeline():
         df = df.groupby(['date', 'date_block_num', 'shop_id', 'item_id', 'item_price'], as_index=False).agg({'item_cnt_day': 'sum'})
         self.logger.info(f'Number of duplicates after grouping : {df.duplicated().sum()}')
         return df
-    
+
     def date_conversion(self, sales):
         sales['date'] = pd.to_datetime(sales['date'], format='%d.%m.%Y')
         self.logger.info("Converted 'date' to datetime")
@@ -87,25 +82,21 @@ class ETL_pipeline():
 
 
     def extract(self):
-        sales           = pd.read_csv(self.config.get('sales'))
-        items           = pd.read_csv(self.config.get('items'))
-        item_categories = pd.read_csv(self.config.get('item_categories'))
-        shops           = pd.read_csv(self.config.get('shops'))
-        test            = pd.read_csv(self.config.get('test'))
+        sales = pd.read_csv(self.config.get('sales'))
         self.logger.info('Data loaded successfully')
-        return sales, items, item_categories, shops, test
+        return sales
 
-    def run_etl(self, validator_object=None, dry_run: bool=True):
+    def run(self, validator_object=None, validation_schema=None, dry_run: bool=True):
         self.logger.info('\n\n\n=== ETL process started ===')
-        sales, items, item_categories, shops, test = self.extract()
+        sales = self.extract()
         sales = self.transform(sales)
 
-        if validator_object is not None:
-            sales = validator_object.validate(sales)
+        if validator_object and validation_schema:
+            sales = validator_object.validate(schema = validation_schema, df = sales, scheme_name='sales_cleaned')
         else:
             self.logger.warning('!!! No validation schema passed to etl pipeline\
                                 Pipeline made transformations without validation.')
-        
+
         if not dry_run:
             self.load(sales)
         self.logger.info("\n=== ETL process finished ===\n\n\n\n")
