@@ -1,4 +1,4 @@
-name: Publish Python package as fsp_ms
+name: Basic check and push on release
 
 on:
   push:

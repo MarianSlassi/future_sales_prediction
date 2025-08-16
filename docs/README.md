@@ -70,39 +70,29 @@ Should be done with:
 ### How everything works?
 The architecture of the project is built on Dependency Injection (DI). Whenever you initiate any script—for example, to clean raw data—you should pass both the config object and the logger object into the constructor of the pipeline class.
 
-When running any transformation script using the `.run()` method, you must also pass a validation schema object as an argument. And last but not least, when defining a validation schema instance, the logger must also be passed in as an argument. You can check how this is done in `project/src/utils/run_all.py`.
+When running any transformation script using the `.run()` method, you must also pass a validation schema object as an argument and schema itslef. And last but not least, when defining a validation schema instance, the logger must also be passed in as an argument. You can check how this is done in project(package) main README in root, when the whole project run as package at remote environemnt. Or you can go to the project src.scripts.train.py and check right there how it's done.
 
-If any transformation step fails schema validation, the entire script execution will be halted. To avoid this, you can set the strict=False parameter in the schema. Additionally, all schemas support input DataFrame modification, since every call to `.validate()` returns a new DataFrame. The logic for assigning these modified DataFrames is implemented in the `.output()` methods of transformation scripts such as `etl.py` and `build_features.py`.
+If any transformation step fails schema validation, the entire script execution will be halted. To avoid this, you can set the `strict=False` parameter in the schema. Additionally, all schemas support input DataFrame modification, since every call to `.validate()` returns a new DataFrame. The logic for assigning these modified DataFrames is implemented in the `.output()` methods of transformation scripts such as `etl.py` and `build_features.py`.
 
 Our system also supports running `build_features.py` and `etl.py` scripts without producing any output DataFrame — this can be done using the `dry_run=False` flag.
 Example: you can call the BuildFeatures object like this:
 `BuildFeatures.run(fe_validator, dry_run=False)`.
 
-🏗️ Panned architecture imporvements:
-    -add local interpretator - uv, poetry
+
+
+
+### Additional:
 
 📂 Directories/paths managment by config in root:
+We choose to run all scripts from root by default, so every module including config might be run from root of the project. And it still might be imported as following:
 
-    Notebooks:
-        from pathlib import Path
-        import sys
-        ROOT = Path().resolve().parent
-        sys.path.append(str(ROOT))
-        from config import Config
-        config = Config()
-
-    Scripts:
-        from pathlib import Path
-        import sys
-        ROOT = Path(__file__).resolve().parents[2]
-        sys.path.append(str(ROOT))
-        from config import Config
+        from  src.fsp_ms.config import Config
         config = Config()
 
 😇 Utils usage:
 
     🖇️Logger:
-    from src.utils.logger import get_logger
+    from src.fsp_ms.utils.logger import get_logger
     logger = get_logger("etl", config.get('log_file_name')) # Technically you can skip second argument, then it will be writen in file with current date. All log files managed through Config
 
     logger.info("Starting etl Process")

@@ -7,7 +7,7 @@ The `get_logger` function returns a ready-to-use logger instance with a specifie
 ## 🛠️ Usage
 
 ```python
-from utils.logger import get_logger
+from src.utils.logger import get_logger
 
 logger = get_logger("train_pipeline")
 logger.info("Training started")
