@@ -1,4 +1,4 @@
-This is a simple librarary to transofrm data, train model, and make predictions.
+This is a simple librarary to transofrm data, train model, and make predictions. This library have been vreated to run a competition code remotely. Competition: https://www.kaggle.com/competitions/competitive-data-science-predict-future-sales
 ----
 If you are using collab or kaggle notebook, please import this package as:
 ---
