@@ -42,7 +42,7 @@ jobs:
         with:
           repository: MarianSlassi/future_sales_prediction
           token: ${{ secrets.GITHUB_TOKEN }}
-        
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
