@@ -1,0 +1,4 @@
+[core]
+    remote = s3backetfree
+['remote "s3backetfree"']
+    url = s3://s3-predict-future-sales-ms
